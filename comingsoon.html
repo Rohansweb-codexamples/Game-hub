@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rohan's Web Game Hub | Coming Soon</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+        :root {
+            --bg: #020617;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* Disable scrolling */
+            background-color: var(--bg);
+            color: #f8fafc;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at 50% 50%, #1e1b4b 0%, #020617 100%);
+        }
+
+        .glow-text {
+            text-shadow: 0 0 20px rgba(139, 92, 246, 0.6), 0 0 40px rgba(139, 92, 246, 0.3);
+        }
+
+        .gradient-text {
+            background: linear-gradient(to right, #8b5cf6, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .pixel-grid {
+            background-image: linear-gradient(rgba(139, 92, 246, 0.05) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(139, 92, 246, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+        }
+
+        /* Scanline effect */
+        .scanline {
+            width: 100%;
+            height: 100px;
+            z-index: 10;
+            background: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(139, 92, 246, 0.05) 50%, rgba(0, 0, 0, 0) 100%);
+            opacity: 0.1;
+            position: absolute;
+            bottom: 100%;
+            animation: scanline 8s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { bottom: 100%; }
+            100% { bottom: -100px; }
+        }
+
+        .floating {
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center">
+
+    <div class="animated-bg"></div>
+    <div class="pixel-grid"></div>
+    <div class="scanline"></div>
+
+    <div class="relative z-20 text-center px-6">
+        <!-- Logo Icon -->
+        <div class="floating mb-8 flex justify-center">
+            <div class="w-20 h-20 bg-gradient-to-br from-violet-600 to-pink-500 rounded-2xl flex items-center justify-center shadow-2xl shadow-violet-500/40 transform rotate-12">
+                <i class="fas fa-gamepad text-white text-4xl -rotate-12"></i>
+            </div>
+        </div>
+
+        <!-- Branding -->
+        <h2 class="text-violet-400 text-sm md:text-lg font-bold tracking-[0.4em] uppercase mb-4 opacity-80">
+            Rohan's Web Game Hub
+        </h2>
+
+        <!-- Main Title -->
+        <h1 class="text-6xl md:text-9xl font-black mb-6 tracking-tighter glow-text leading-none">
+            COMING <br> <span class="gradient-text">SOON</span>
+        </h1>
+
+        <!-- Subtext -->
+        <div class="flex items-center justify-center space-x-4 text-slate-500 font-bold text-xs md:text-sm tracking-widest uppercase">
+            <span class="w-12 h-[1px] bg-slate-800"></span>
+            <span>Leveling Up</span>
+            <span class="w-12 h-[1px] bg-slate-800"></span>
+        </div>
+    </div>
+
+    <!-- Mouse Interaction Script -->
+    <script>
+        window.addEventListener('mousemove', (e) => {
+            const moveX = (e.clientX - window.innerWidth / 2) * 0.02;
+            const moveY = (e.clientY - window.innerHeight / 2) * 0.02;
+            document.querySelector('.animated-bg').style.transform = `translate(${moveX}px, ${moveY}px)`;
+        });
+    </script>
+</body>
+</html>
