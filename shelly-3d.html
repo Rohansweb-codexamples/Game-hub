@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Shelly the Dancing Sea Turtle</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@400;600&display=swap');
+        
+        body { margin: 0; overflow: hidden; font-family: 'Quicksand', sans-serif; background: #0077be; }
+        canvas { display: block; cursor: pointer; }
+
+        .ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            z-index: 10;
+        }
+
+        .interactive { pointer-events: auto; }
+        
+        .progress-bg { background: rgba(255,255,255,0.2); border-radius: 10px; height: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.3); }
+        .progress-fill { height: 100%; transition: width 0.3s ease; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
+        
+        h1 { font-family: 'Fredoka One', cursive; text-shadow: 2px 2px 0px rgba(0,0,0,0.2); }
+
+        .btn-action {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(5px);
+            border-radius: 50px;
+            padding: 12px 24px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 2px solid transparent;
+        }
+        .btn-action:hover { transform: translateY(-3px); border-color: #4db8ff; background: white; }
+        .btn-action:active { transform: scale(0.95); }
+        .btn-disabled { opacity: 0.4; filter: grayscale(1); pointer-events: none; }
+        .btn-dancing { background: #ffeb3b !important; animation: pulse-btn 1s infinite; }
+        
+        @keyframes pulse-btn {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        #speech-bubble {
+            position: fixed;
+            bottom: 25%;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            background: white;
+            padding: 15px 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-width: 250px;
+            text-align: center;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 50;
+            pointer-events: none;
+        }
+        #speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 10px 10px 0;
+            border-style: solid;
+            border-color: white transparent transparent;
+        }
+
+        .ocean-vibe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #4db8ff 0%, #0077be 100%);
+            opacity: 0.3;
+            pointer-events: none;
+        }
+        
+        #tap-hint {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: rgba(255,255,255,0.6);
+            font-weight: bold;
+            pointer-events: none;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.8; } }
+
+        .music-note {
+            position: absolute;
+            pointer-events: none;
+            animation: float-note 2s ease-out forwards;
+            font-size: 24px;
+        }
+        @keyframes float-note {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--x), -100px) scale(1.5); opacity: 0; }
+        }
+
+        /* Hidden file input */
+        #audio-upload { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="ocean-vibe"></div>
+    <div id="tap-hint">Tap Shelly to pat him!</div>
+    <div id="speech-bubble">Hello! 🫧</div>
+
+    <input type="file" id="audio-upload" accept="audio/*">
+
+    <div class="ui-overlay">
+        <!-- Top Stats -->
+        <div class="flex justify-between items-start">
+            <div class="bg-white/20 backdrop-blur-md p-5 rounded-3xl shadow-2xl w-64 interactive border border-white/30">
+                <h1 class="text-2xl text-white mb-2 italic">Shelly 3D</h1>
+                <div class="space-y-3">
+                    <div>
+                        <div class="flex justify-between text-[10px] font-bold uppercase text-cyan-100 mb-1">
+                            <span>Hunger</span><span id="val-hunger">100%</span>
+                        </div>
+                        <div class="progress-bg"><div id="bar-hunger" class="progress-fill bg-emerald-400" style="width: 100%"></div></div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-[10px] font-bold uppercase text-cyan-100 mb-1">
+                            <span>Love</span><span id="val-love">100%</span>
+                        </div>
+                        <div class="progress-bg"><div id="bar-love" class="progress-fill bg-pink-400" style="width: 100%"></div></div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-[10px] font-bold uppercase text-cyan-100 mb-1">
+                            <span>Growth</span><span id="val-growth">0%</span>
+                        </div>
+                        <div class="progress-bg"><div id="bar-growth" class="progress-fill bg-cyan-300" style="width: 0%"></div></div>
+                    </div>
+                </div>
+            </div>
+            <div id="stage-badge" class="bg-cyan-500 text-white px-6 py-2 rounded-full font-bold shadow-lg interactive uppercase tracking-wider">
+                Sea Hatchling
+            </div>
+        </div>
+
+        <!-- Center Message -->
+        <div id="msg" class="text-center text-white font-bold text-2xl drop-shadow-lg opacity-0 transition-all duration-500 transform translate-y-4">
+            Bloop! 🫧
+        </div>
+
+        <!-- Bottom Controls -->
+        <div class="flex flex-col items-center gap-4 mb-10">
+            <div class="flex justify-center gap-4 interactive">
+                <button onclick="feed()" class="btn-action">
+                    <span class="text-3xl">🌿</span>
+                    <span class="text-xs font-bold text-cyan-800 uppercase mt-1">Algae</span>
+                </button>
+                <button onclick="pet()" class="btn-action">
+                    <span class="text-3xl">💖</span>
+                    <span class="text-xs font-bold text-cyan-800 uppercase mt-1">Pat</span>
+                </button>
+                <button id="dance-btn" onclick="toggleDance()" class="btn-action">
+                    <span class="text-3xl">🕺</span>
+                    <span class="text-xs font-bold text-cyan-800 uppercase mt-1">Dance</span>
+                </button>
+                <button onclick="triggerUpload()" class="btn-action">
+                    <span class="text-3xl">🎵</span>
+                    <span class="text-xs font-bold text-cyan-800 uppercase mt-1">Upload</span>
+                </button>
+                <button id="talk-btn" onclick="randomTalk()" class="btn-action">
+                    <span class="text-3xl">💬</span>
+                    <span class="text-xs font-bold text-cyan-800 uppercase mt-1">Talk</span>
+                </button>
+            </div>
+            <div id="music-controls" class="hidden interactive">
+                <button onclick="stopMusic()" class="bg-red-500/80 text-white px-4 py-1 rounded-full text-xs font-bold uppercase backdrop-blur-sm">
+                    Stop Music ⏹️
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const apiKey = "";
+        let scene, camera, renderer, tortoise, flippers = [], eyeL, eyeR, bubbles = [];
+        let clock = new THREE.Clock();
+        let raycaster = new THREE.Raycaster();
+        let mouse = new THREE.Vector2();
+        let isSpeaking = false;
+        let activeAudio = null;
+        
+        let state = {
+            hunger: 100,
+            love: 100,
+            growth: 0,
+            isDiving: false,
+            isDancing: false,
+            stage: 'baby',
+            targetY: 2
+        };
+
+        const phrases = [
+            "Bloop! I'm a happy sea turtle!",
+            "Did you know sea turtles can live for over 50 years?",
+            "I love swimming in the crystal clear water!",
+            "I'm feeling quite hungry, is it algae time?",
+            "I want to grow big enough to reach the deep reef!",
+            "The ocean is full of magic, don't you think?",
+            "I'm Shelly, your best underwater friend!",
+            "Look at my shell! It's so shiny today!",
+            "Wiggle wiggle! I've got the ocean rhythm!",
+            "I love it when we hang out together!"
+        ];
+
+        const patPhrases = [
+            "That feels so nice! 💖",
+            "Aww, you're so sweet! 🫧",
+            "I love being your turtle friend!",
+            "Teehee! That tickles my shell!",
+            "More pats please! 🐢",
+            "My shell is so happy right now!",
+            "You give the best pats in the whole sea!"
+        ];
+
+        // --- Audio Utility ---
+        async function speak(text) {
+            if (isSpeaking) return;
+            isSpeaking = true;
+            
+            const speechBubble = document.getElementById('speech-bubble');
+            speechBubble.innerText = text;
+            speechBubble.style.transform = "translateX(-50%) scale(1)";
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: `Say in a cute, bubbly, high-pitched sea turtle voice: ${text}` }] }],
+                        generationConfig: {
+                            responseModalities: ["AUDIO"],
+                            speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Puck" } } }
+                        }
+                    })
+                });
+
+                const result = await response.json();
+                const audioData = result.candidates[0].content.parts[0].inlineData.data;
+                const audioBlob = pcmToWav(audioData, 24000);
+                const audioUrl = URL.createObjectURL(audioBlob);
+                const audio = new Audio(audioUrl);
+                
+                audio.onended = () => {
+                    isSpeaking = false;
+                    setTimeout(() => {
+                        speechBubble.style.transform = "translateX(-50%) scale(0)";
+                    }, 1000);
+                };
+                audio.play();
+            } catch (error) {
+                console.error("Speech error:", error);
+                isSpeaking = false;
+                setTimeout(() => { speechBubble.style.transform = "translateX(-50%) scale(0)"; }, 2000);
+            }
+        }
+
+        function pcmToWav(base64Data, sampleRate) {
+            const buffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0)).buffer;
+            const wavHeader = new ArrayBuffer(44);
+            const view = new DataView(wavHeader);
+            const length = buffer.byteLength;
+            view.setUint32(0, 0x46464952, true); 
+            view.setUint32(4, 36 + length, true);
+            view.setUint32(8, 0x45564157, true); 
+            view.setUint32(12, 0x20746d66, true); 
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true); 
+            view.setUint16(22, 1, true); 
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * 2, true);
+            view.setUint16(32, 2, true);
+            view.setUint16(34, 16, true);
+            view.setUint32(36, 0x61746164, true); 
+            view.setUint32(40, length, true);
+            return new Blob([wavHeader, buffer], { type: 'audio/wav' });
+        }
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0077be);
+            scene.fog = new THREE.FogExp2(0x0077be, 0.04);
+
+            camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 4, 12);
+            camera.lookAt(0, 1, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            document.body.appendChild(renderer.domElement);
+
+            const hemiLight = new THREE.HemisphereLight(0x4db8ff, 0x003366, 0.8);
+            scene.add(hemiLight);
+
+            const light = new THREE.DirectionalLight(0xffffff, 1.0);
+            light.position.set(2, 10, 5);
+            light.castShadow = true;
+            scene.add(light);
+
+            createOcean();
+            createShelly();
+            createBubbles();
+            
+            window.addEventListener('mousedown', onPointerDown);
+            window.addEventListener('touchstart', (e) => onPointerDown(e.touches[0]));
+            
+            // Audio upload listener
+            document.getElementById('audio-upload').addEventListener('change', handleAudioUpload);
+
+            animate();
+        }
+
+        function createOcean() {
+            const sandGeo = new THREE.PlaneGeometry(100, 100, 32, 32);
+            const sandMat = new THREE.MeshStandardMaterial({ color: 0xe3c18d, roughness: 0.8 });
+            const sand = new THREE.Mesh(sandGeo, sandMat);
+            sand.rotation.x = -Math.PI / 2;
+            sand.receiveShadow = true;
+            scene.add(sand);
+
+            for(let i=0; i<30; i++) {
+                const h = 1 + Math.random() * 2;
+                const weed = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.05, 0.1, h, 8),
+                    new THREE.MeshStandardMaterial({ color: 0x2d5a27 })
+                );
+                weed.position.set(Math.random()*40-20, h/2, Math.random()*40-20);
+                scene.add(weed);
+            }
+        }
+
+        function createBubbles() {
+            const bubbleGeo = new THREE.SphereGeometry(0.1, 16, 16);
+            const bubbleMat = new THREE.MeshPhongMaterial({ color: 0xffffff, transparent: true, opacity: 0.3 });
+            for(let i=0; i<60; i++) {
+                const b = new THREE.Mesh(bubbleGeo, bubbleMat);
+                resetBubble(b);
+                scene.add(b);
+                bubbles.push(b);
+            }
+        }
+
+        function resetBubble(b) {
+            b.position.set(Math.random()*30-15, -Math.random()*10, Math.random()*30-15);
+            b.userData.speed = 0.02 + Math.random() * 0.05;
+        }
+
+        function buildShellyVisuals(mainColor = 0x56a65b, shellBaseColor = 0x3d6e3f) {
+            const group = new THREE.Group();
+            
+            const headGroup = new THREE.Group();
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.65, 32, 32), new THREE.MeshStandardMaterial({ color: mainColor }));
+            head.scale.set(1.1, 0.9, 1.2);
+            headGroup.add(head);
+
+            function makeEye(x) {
+                const eyeGroup = new THREE.Group();
+                const white = new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 16), new THREE.MeshBasicMaterial({color: 0xffffff}));
+                const iris = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), new THREE.MeshBasicMaterial({ color: 0x111111 }));
+                iris.position.z = 0.12;
+                eyeGroup.add(white, iris);
+                eyeGroup.position.set(x, 0.1, 0.45);
+                return eyeGroup;
+            }
+            const eL = makeEye(0.35);
+            const eR = makeEye(-0.35);
+            headGroup.add(eL, eR);
+
+            const bL = new THREE.Mesh(new THREE.CircleGeometry(0.15, 16), new THREE.MeshBasicMaterial({ color: 0xff8a80, transparent: true, opacity: 0.4 }));
+            bL.position.set(0.5, -0.15, 0.5);
+            const bR = bL.clone(); bR.position.x = -0.5;
+            headGroup.add(bL, bR);
+
+            headGroup.position.set(0, 0, 1.3);
+            group.add(headGroup);
+
+            const topShell = new THREE.Mesh(
+                new THREE.SphereGeometry(1.3, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2),
+                new THREE.MeshStandardMaterial({ color: shellBaseColor, roughness: 0.5 })
+            );
+            topShell.scale.set(1, 0.6, 1.2);
+            topShell.castShadow = true;
+            group.add(topShell);
+
+            const scuteMat = new THREE.MeshStandardMaterial({ color: 0x2a4d2c });
+            for(let i=0; i<7; i++) {
+                const scute = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.1, 0.5), scuteMat);
+                const angle = (i/6) * Math.PI * 2;
+                const r = i === 0 ? 0 : 0.6;
+                scute.position.set(Math.cos(angle)*r, 0.7, Math.sin(angle)*r);
+                scute.rotation.y = angle;
+                topShell.add(scute);
+            }
+
+            const flipperGeo = new THREE.SphereGeometry(0.5, 16, 16);
+            function makeFlipper(x, z, rotY) {
+                const fGroup = new THREE.Group();
+                const f = new THREE.Mesh(flipperGeo, new THREE.MeshStandardMaterial({ color: mainColor }));
+                f.scale.set(1.5, 0.1, 0.6);
+                f.position.x = x > 0 ? 0.7 : -0.7;
+                fGroup.add(f);
+                fGroup.position.set(x, 0, z);
+                fGroup.rotation.y = rotY;
+                group.add(fGroup);
+                return fGroup;
+            }
+            const fs = [makeFlipper(1, 0.8, -0.4), makeFlipper(-1, 0.8, 0.4), makeFlipper(0.8, -0.8, 0.4), makeFlipper(-0.8, -0.8, -0.4)];
+
+            return { group, eyes: [eL, eR], flippers: fs, head: headGroup };
+        }
+
+        function createShelly() {
+            const visuals = buildShellyVisuals();
+            tortoise = visuals.group;
+            eyeL = visuals.eyes[0];
+            eyeR = visuals.eyes[1];
+            flippers = visuals.flippers;
+            tortoise.position.y = state.targetY;
+            scene.add(tortoise);
+        }
+
+        function onPointerDown(event) {
+            if (event.target.closest('.interactive')) return;
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObject(tortoise, true);
+            if (intersects.length > 0) pet();
+        }
+
+        function showMessage(text) {
+            const el = document.getElementById('msg');
+            el.innerText = text;
+            el.style.opacity = 1;
+            el.style.transform = "translateY(0)";
+            setTimeout(() => {
+                el.style.opacity = 0;
+                el.style.transform = "translateY(1rem)";
+            }, 2000);
+        }
+
+        function feed() {
+            if (state.hunger >= 100) return speak("I'm so full, I might pop! 🫧");
+            state.hunger = Math.min(100, state.hunger + 20);
+            state.growth = Math.min(150, state.growth + 10);
+            showMessage("Yum! Tasty Algae 🌿");
+            speak("Delicious! My favorite algae!");
+            updateUI();
+        }
+
+        function pet() {
+            state.love = Math.min(100, state.love + 15);
+            state.growth = Math.min(150, state.growth + 2);
+            document.getElementById('tap-hint').style.display = 'none';
+            showMessage("Shelly loves you! 💖");
+            
+            tortoise.scale.set(tortoise.scale.x * 1.1, tortoise.scale.y * 0.9, tortoise.scale.z * 1.1);
+            setTimeout(() => updateScale(), 150);
+            
+            const phrase = patPhrases[Math.floor(Math.random() * patPhrases.length)];
+            speak(phrase);
+            updateUI();
+        }
+
+        function randomTalk() {
+            const phrase = phrases[Math.floor(Math.random() * phrases.length)];
+            speak(phrase);
+        }
+
+        function toggleDance() {
+            state.isDancing = !state.isDancing;
+            const btn = document.getElementById('dance-btn');
+            if (state.isDancing) {
+                btn.classList.add('btn-dancing');
+                speak("Wiggle wiggle! I've got the ocean rhythm! 🎶");
+                showMessage("Groovy! 🕺");
+            } else {
+                btn.classList.remove('btn-dancing');
+                speak("Phew! What a workout! 🫧");
+            }
+        }
+
+        function triggerUpload() {
+            document.getElementById('audio-upload').click();
+        }
+
+        function handleAudioUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (activeAudio) stopMusic();
+
+            const url = URL.createObjectURL(file);
+            activeAudio = new Audio(url);
+            activeAudio.play();
+            
+            state.isDancing = true;
+            document.getElementById('dance-btn').classList.add('btn-dancing');
+            document.getElementById('music-controls').classList.remove('hidden');
+            
+            speak("Oh wow! I love this song! 🎵");
+            showMessage("Party Time! 🎈");
+
+            activeAudio.onended = () => {
+                stopMusic();
+                speak("That was a great track!");
+            };
+        }
+
+        function stopMusic() {
+            if (activeAudio) {
+                activeAudio.pause();
+                activeAudio = null;
+            }
+            state.isDancing = false;
+            document.getElementById('dance-btn').classList.remove('btn-dancing');
+            document.getElementById('music-controls').classList.add('hidden');
+        }
+
+        function spawnMusicNote() {
+            const notes = ['♪', '♫', '♬', '♩'];
+            const note = document.createElement('div');
+            note.className = 'music-note text-yellow-300';
+            note.innerText = notes[Math.floor(Math.random() * notes.length)];
+            note.style.left = '50%';
+            note.style.top = '50%';
+            note.style.setProperty('--x', (Math.random() * 200 - 100) + 'px');
+            document.body.appendChild(note);
+            setTimeout(() => note.remove(), 2000);
+        }
+
+        function updateScale() {
+            let s = 1;
+            if (state.stage === 'teen') s = 1.3;
+            if (state.stage === 'adult') s = 1.8;
+            if (state.stage === 'elder') s = 2.8;
+            tortoise.scale.set(s, s, s);
+        }
+
+        function updateUI() {
+            document.getElementById('bar-hunger').style.width = state.hunger + '%';
+            document.getElementById('val-hunger').innerText = Math.round(state.hunger) + '%';
+            document.getElementById('bar-love').style.width = state.love + '%';
+            document.getElementById('val-love').innerText = Math.round(state.love) + '%';
+            let displayGrowth = (state.growth / 150) * 100;
+            document.getElementById('bar-growth').style.width = displayGrowth + '%';
+            document.getElementById('val-growth').innerText = Math.round(displayGrowth) + '%';
+
+            if (state.growth >= 150 && state.stage !== 'elder') {
+                state.stage = 'elder';
+                document.getElementById('stage-badge').innerText = "Ancient Sea Monarch";
+                document.getElementById('stage-badge').className = "bg-indigo-600 text-white px-6 py-2 rounded-full font-bold shadow-lg interactive uppercase tracking-wider";
+                updateScale();
+                speak("I have become the ancient monarch of the reef! 👑");
+            } else if (state.growth >= 100 && state.stage === 'teen') {
+                state.stage = 'adult';
+                document.getElementById('stage-badge').innerText = "Grown Sea Turtle";
+                document.getElementById('stage-badge').className = "bg-emerald-600 text-white px-6 py-2 rounded-full font-bold shadow-lg interactive uppercase tracking-wider";
+                updateScale();
+                speak("Look at me! I'm a grown-up now! 🫧");
+            } else if (state.growth >= 50 && state.stage === 'baby') {
+                state.stage = 'teen';
+                document.getElementById('stage-badge').innerText = "Young Voyager";
+                document.getElementById('stage-badge').className = "bg-cyan-600 text-white px-6 py-2 rounded-full font-bold shadow-lg interactive uppercase tracking-wider";
+                updateScale();
+                speak("I'm growing so fast! 🌊");
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            let time = clock.getElapsedTime();
+
+            state.hunger -= 0.005;
+            state.love -= 0.003;
+            updateUI();
+
+            bubbles.forEach(b => {
+                b.position.y += b.userData.speed;
+                if(b.position.y > 15) resetBubble(b);
+            });
+
+            if (state.isDancing) {
+                // Dance choreography
+                tortoise.position.y = state.targetY + Math.abs(Math.sin(time * 6)) * 1.5;
+                tortoise.rotation.z = Math.sin(time * 6) * 0.5;
+                tortoise.rotation.y += 0.1;
+                
+                flippers.forEach((f, i) => {
+                    f.rotation.z = Math.sin(time * 12 + i) * 1.2;
+                });
+
+                if (Math.floor(time * 2) % 2 === 0 && Math.random() < 0.1) spawnMusicNote();
+            } else {
+                // Calm swimming
+                tortoise.position.y = THREE.MathUtils.lerp(tortoise.position.y, state.targetY + Math.sin(time * 0.8) * 0.4, 0.05);
+                tortoise.rotation.x = Math.sin(time * 0.8) * 0.1;
+                tortoise.rotation.z = THREE.MathUtils.lerp(tortoise.rotation.z, 0, 0.1);
+                
+                flippers.forEach((f, i) => {
+                    let offset = (i < 2) ? 0 : Math.PI;
+                    f.rotation.z = Math.sin(time * 2 + offset) * 0.6;
+                });
+            }
+
+            if (Math.sin(time * 0.5) > 0.98) {
+                eyeL.scale.y = 0.1; eyeR.scale.y = 0.1;
+            } else {
+                eyeL.scale.y = 1; eyeR.scale.y = 1;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        init();
+    </script>
+</body>
+</html>
