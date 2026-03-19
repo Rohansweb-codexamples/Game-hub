@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rohan's Easter Arcade Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Sign-In Library -->
+    <!-- Google Identity Services Library -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Bungee+Spice&family=Bungee&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
@@ -48,31 +48,20 @@
             box-shadow: 0 20px 40px rgba(244, 114, 182, 0.15);
         }
 
-        .goty-card {
-            border: 2px solid #fbbf24 !important;
-            background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(217, 119, 6, 0.1));
+        .input-field {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 16px;
+            border-radius: 12px;
+            width: 100%;
+            color: white;
+            outline: none;
+            transition: border-color 0.2s;
         }
 
-        .egg-shimmer {
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
-            transform: rotate(45deg);
-            animation: shimmer 4s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%) rotate(45deg); }
-            100% { transform: translateX(100%) rotate(45deg); }
-        }
+        .input-field:focus { border-color: var(--primary-pink); }
 
         canvas { background: #0f172a; border-radius: 16px; cursor: crosshair; display: block; margin: 0 auto; }
-        .status-badge { font-size: 0.65rem; padding: 2px 8px; border-radius: 99px; text-transform: uppercase; font-weight: 900; }
-        
-        #user-profile { display: none; align-items: center; gap: 8px; background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 99px; }
         
         .login-warning {
             display: none;
@@ -88,39 +77,50 @@
             animation: slideUp 0.3s ease;
         }
         @keyframes slideUp { from { transform: translateY(100px); } to { transform: translateY(0); } }
+
+        .avatar-option {
+            cursor: pointer;
+            border: 4px solid transparent;
+            transition: all 0.2s;
+            border-radius: 999px;
+        }
+        .avatar-option.selected { border-color: var(--primary-pink); transform: scale(1.1); }
+
+        #google-signin-btn {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
     </style>
 </head>
 <body class="min-h-screen">
 
     <div id="login-warning" class="login-warning">⚠️ Sign in to save your eggs!</div>
 
+    <!-- NAVIGATION -->
     <nav class="bg-slate-950/80 backdrop-blur-xl p-4 sticky top-0 z-[100] border-b border-pink-500/20">
         <div class="container mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-3">
+            <div onclick="showView('hub')" class="flex items-center gap-3 cursor-pointer">
                 <span class="text-3xl">🐰</span>
                 <h1 class="logo-font text-xl md:text-2xl text-white tracking-tighter">ROHAN'S <span class="text-pink-400">ARCADE</span></h1>
             </div>
             
             <div class="flex items-center gap-4">
-                <!-- Google Login Button Container -->
-                <div id="g_id_onload"
-                     data-client_id="607124730463-rourlv2ariaqrji9cded64pk0otujkca.apps.googleusercontent.com"
-                     data-callback="handleCredentialResponse"
-                     data-auto_prompt="false">
-                </div>
-                <div id="login-container" class="g_id_signin" data-type="standard" data-shape="pill" data-theme="filled_blue" data-text="signin_with" data-size="medium" data-logo_alignment="left"></div>
-                
-                <!-- User Profile (Visible after login) -->
-                <div id="user-profile">
-                    <img id="user-pic" src="" class="w-6 h-6 rounded-full border border-white/20">
-                    <span id="user-name" class="text-[10px] font-bold text-white uppercase tracking-wider"></span>
-                    <button onclick="logout()" class="text-[10px] text-pink-400 font-black hover:text-white ml-2">EXIT</button>
-                </div>
+                <div id="auth-controls" class="flex items-center gap-4">
+                    <div id="guest-nav" class="flex gap-2">
+                        <button onclick="showView('login')" class="text-xs font-black uppercase text-pink-400 hover:text-white px-4 py-2 rounded-lg border border-pink-500/20">Login</button>
+                    </div>
 
-                <div class="glass-panel px-4 py-1.5 flex items-center gap-2 border-yellow-500/30">
-                    <span class="text-yellow-400 font-black" id="total-eggs-display">🥚 0</span>
+                    <div id="user-nav" class="hidden flex items-center gap-4">
+                        <div class="glass-panel px-4 py-1.5 flex items-center gap-2 border-yellow-500/30">
+                            <span class="text-yellow-400 font-black" id="nav-eggs">🥚 0</span>
+                        </div>
+                        <button onclick="showView('account')" class="flex items-center gap-2 group">
+                            <img id="nav-avatar" src="" class="w-8 h-8 rounded-full border border-pink-500/50 object-cover group-hover:scale-110 transition-transform">
+                            <span id="nav-username" class="hidden md:block text-xs font-bold uppercase tracking-widest text-white group-hover:text-pink-400"></span>
+                        </button>
+                    </div>
                 </div>
-                <button onclick="showView('hub')" class="text-xs font-black uppercase text-pink-400 hover:text-white transition-colors">Home</button>
             </div>
         </div>
     </nav>
@@ -128,139 +128,170 @@
     <!-- HUB VIEW -->
     <section id="view-hub" class="container mx-auto px-4 py-12 max-w-6xl">
         <div class="mb-12 text-center">
-            <h2 class="spice-font text-5xl md:text-7xl mb-4">EASTER FESTIVAL</h2>
-            <p id="hub-msg" class="text-slate-400 font-medium italic">Sign in to start your collection!</p>
+            <h2 class="spice-font text-5xl md:text-7xl mb-4">EASTER ARCADE</h2>
+            <p id="hub-msg" class="text-slate-400 font-medium italic">Collect eggs and climb the ranks!</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <a href="https://gamehub.rohansweb.co.uk/shelly-3d" target="_blank" class="hub-card glass-panel p-6 goty-card group block">
-                <div class="egg-shimmer"></div>
+            <a href="https://gamehub.rohansweb.co.uk/StudioBeats" target="_blank" class="hub-card glass-panel p-6 border-blue-400/30 group block bg-gradient-to-br from-blue-500/5 to-purple-500/5">
+                <div class="h-40 rounded-xl bg-gradient-to-br from-blue-600 to-purple-700 mb-4 flex items-center justify-center relative overflow-hidden">
+                    <span class="text-6xl group-hover:scale-110 transition-transform duration-500">🎧</span>
+                </div>
+                <h3 class="logo-font text-xl mb-1 text-blue-400">STUDIO BEATS</h3>
+                <p class="text-xs text-slate-400 mb-4">Feel the rhythm in this premium music experience.</p>
+                <div class="flex justify-between items-center">
+                    <span class="px-2 py-1 rounded bg-blue-500/20 text-blue-400 text-[10px] font-black uppercase">Rhythm</span>
+                    <span class="text-xs font-black text-blue-400 group-hover:translate-x-1 transition-transform">PLAY ON WEB 🔗</span>
+                </div>
+            </a>
+
+            <a href="https://gamehub.rohansweb.co.uk/shelly-3d" target="_blank" class="hub-card glass-panel p-6 border-yellow-500/30 group block">
                 <div class="h-40 rounded-xl bg-gradient-to-br from-yellow-500 to-amber-700 mb-4 flex items-center justify-center relative overflow-hidden">
                     <span class="text-6xl group-hover:scale-110 transition-transform duration-500">🐢</span>
-                    <div class="absolute top-2 right-2 bg-yellow-400 text-black font-black text-[10px] px-2 py-1 rounded">GOTY 2024</div>
                 </div>
                 <h3 class="logo-font text-xl mb-1 text-yellow-400">SHELLY 3D</h3>
-                <p class="text-xs text-slate-400 mb-4">Game of the Year: Explore an immersive 3D world!</p>
+                <p class="text-xs text-slate-400 mb-4">GOTY 2024: Explore an immersive 3D world!</p>
                 <div class="flex justify-between items-center">
-                    <span class="status-badge bg-yellow-500/20 text-yellow-400 font-black">Award Winner</span>
+                    <span class="px-2 py-1 rounded bg-yellow-500/20 text-yellow-400 text-[10px] font-black uppercase">3D Exploration</span>
                     <span class="text-xs font-black text-yellow-400 group-hover:translate-x-1 transition-transform">PLAY NOW 🔗</span>
                 </div>
             </a>
 
             <div onclick="showView('catch')" class="hub-card glass-panel p-6 border-pink-500/30 group">
-                <div class="h-40 rounded-xl bg-gradient-to-br from-pink-600 to-purple-800 mb-4 flex items-center justify-center relative overflow-hidden">
+                <div class="h-40 rounded-xl bg-gradient-to-br from-pink-600 to-purple-800 mb-4 flex items-center justify-center">
                     <span class="text-6xl group-hover:scale-125 transition-transform">🧺</span>
                 </div>
                 <h3 class="logo-font text-xl mb-1 text-pink-400">EGG CATCH</h3>
-                <p class="text-xs text-slate-400 mb-4">Action: Catch as many falling eggs as you can!</p>
+                <p class="text-xs text-slate-400 mb-4">Fast-paced egg collection challenge.</p>
                 <div class="flex justify-between items-center">
-                    <span class="status-badge bg-pink-500/20 text-pink-400">Newly Added</span>
+                    <span class="px-2 py-1 rounded bg-pink-500/20 text-pink-400 text-[10px] font-black uppercase">Action</span>
                     <span class="text-xs font-black text-pink-400">PLAY →</span>
-                </div>
-            </div>
-
-            <div onclick="showView('blocks')" class="hub-card glass-panel p-6 border-blue-500/30 group">
-                <div class="h-40 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-800 mb-4 flex items-center justify-center relative overflow-hidden">
-                    <span class="text-6xl group-hover:rotate-12 transition-transform">🏗️</span>
-                </div>
-                <h3 class="logo-font text-xl mb-1 text-blue-400">BLOCK BUILD</h3>
-                <p class="text-xs text-slate-400 mb-4">Creative: Construct massive towers block by block.</p>
-                <div class="flex justify-between items-center">
-                    <span class="status-badge bg-blue-500/20 text-blue-400">New Game</span>
-                    <span class="text-xs font-black text-blue-400">PLAY →</span>
-                </div>
-            </div>
-
-            <div onclick="showView('scrumble')" class="hub-card glass-panel p-6 border-yellow-500/30 group">
-                <div class="h-40 rounded-xl bg-gradient-to-br from-yellow-600 to-orange-800 mb-4 flex items-center justify-center relative overflow-hidden">
-                    <span class="text-6xl group-hover:rotate-12 transition-transform">🥚</span>
-                </div>
-                <h3 class="logo-font text-xl mb-1 text-yellow-400">EGG SCRUMBLE</h3>
-                <p class="text-xs text-slate-400 mb-4">Physics: Stack the falling eggs as high as possible!</p>
-                <div class="flex justify-between items-center">
-                    <span class="status-badge bg-green-500/20 text-green-400">Playable</span>
-                    <span class="text-xs font-black text-yellow-400">PLAY →</span>
-                </div>
-            </div>
-
-            <div onclick="showView('hop')" class="hub-card glass-panel p-6 border-green-500/30 group">
-                <div class="h-40 rounded-xl bg-gradient-to-br from-green-600 to-teal-800 mb-4 flex items-center justify-center relative overflow-hidden">
-                    <span class="text-6xl group-hover:-translate-y-4 transition-transform">🐰</span>
-                </div>
-                <h3 class="logo-font text-xl mb-1 text-green-400">BUNNY HOP</h3>
-                <p class="text-xs text-slate-400 mb-4">Platformer: Keep hopping higher. Don't fall!</p>
-                <div class="flex justify-between items-center">
-                    <span class="status-badge bg-green-500/20 text-green-400">Playable</span>
-                    <span class="text-xs font-black text-green-400">PLAY →</span>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- GAME VIEWS -->
+    <!-- AUTH VIEWS -->
+    <section id="view-login" class="container mx-auto px-4 py-20 max-w-md hidden">
+        <div class="glass-panel p-8">
+            <h2 class="logo-font text-3xl text-pink-400 mb-6 text-center">LOGIN</h2>
+            
+            <div class="mb-6">
+                <div id="google-signin-btn"></div>
+                <div class="flex items-center my-6">
+                    <div class="flex-grow border-t border-white/10"></div>
+                    <span class="px-3 text-slate-500 text-xs font-bold uppercase tracking-widest">or email</span>
+                    <div class="flex-grow border-t border-white/10"></div>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <input type="email" id="login-email" placeholder="Email Address" class="input-field">
+                <input type="password" id="login-pass" placeholder="Password" class="input-field">
+                <button onclick="handleLogin()" id="btn-login" class="w-full bg-pink-500 hover:bg-pink-600 py-4 rounded-xl font-black text-white transition-all shadow-lg shadow-pink-500/20">ENTER ARCADE</button>
+                <p class="text-center text-xs text-slate-500 mt-4">
+                    Don't have an account? <button onclick="showView('signup')" class="text-pink-400 underline font-bold">Sign Up</button>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section id="view-signup" class="container mx-auto px-4 py-20 max-w-md hidden">
+        <div class="glass-panel p-8">
+            <h2 class="logo-font text-3xl text-blue-400 mb-6 text-center">SIGN UP</h2>
+            <div class="space-y-4">
+                <input type="text" id="signup-user" placeholder="Choose Username" class="input-field">
+                <input type="email" id="signup-email" placeholder="Email Address" class="input-field">
+                <input type="password" id="signup-pass" placeholder="Create Password" class="input-field">
+                <button onclick="handleSignup()" id="btn-signup" class="w-full bg-blue-500 hover:bg-blue-600 py-4 rounded-xl font-black text-white transition-all shadow-lg shadow-blue-500/20">CREATE ACCOUNT</button>
+                <button onclick="showView('login')" class="w-full text-xs text-slate-500 text-center uppercase font-bold mt-4">Back to Login</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ACCOUNT VIEW -->
+    <section id="view-account" class="container mx-auto px-4 py-12 max-w-2xl hidden">
+        <div class="glass-panel p-8">
+            <div class="flex flex-col items-center mb-10">
+                <div class="relative group">
+                    <img id="acc-avatar" src="" class="w-32 h-32 rounded-full border-4 border-pink-500/30 mb-4 shadow-2xl object-cover">
+                    <button onclick="showView('avatar')" class="absolute bottom-4 right-0 bg-pink-500 p-2 rounded-full border-4 border-slate-900 group-hover:scale-110 transition-transform">✏️</button>
+                </div>
+                <h2 id="acc-username" class="logo-font text-3xl text-white mb-1 text-center"></h2>
+                <p id="acc-email" class="text-slate-500 text-sm font-bold uppercase tracking-widest"></p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <div class="bg-white/5 rounded-2xl p-6 text-center border border-white/10">
+                    <span class="text-slate-500 text-[10px] font-black uppercase tracking-widest block mb-2">Total Eggs</span>
+                    <span id="acc-eggs" class="text-4xl font-black text-yellow-400">0</span>
+                </div>
+                <div class="bg-white/5 rounded-2xl p-6 text-center border border-white/10">
+                    <span class="text-slate-500 text-[10px] font-black uppercase tracking-widest block mb-2">Arcade Level</span>
+                    <span id="acc-level" class="text-4xl font-black text-pink-400">1</span>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <button onclick="showView('hub')" class="w-full bg-slate-800 hover:bg-slate-700 py-4 rounded-xl font-bold transition-colors">Back to Hub</button>
+                <button onclick="logout()" class="w-full text-red-400 font-bold hover:underline py-2">Sign Out</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- AVATAR SELECTION VIEW -->
+    <section id="view-avatar" class="container mx-auto px-4 py-12 max-w-2xl hidden">
+        <div class="glass-panel p-8">
+            <h2 class="logo-font text-2xl text-pink-400 mb-8 text-center">CHOOSE YOUR AVATAR</h2>
+            <div id="avatar-grid" class="grid grid-cols-3 md:grid-cols-4 gap-6 mb-10"></div>
+            <button onclick="saveAvatar()" class="w-full bg-pink-500 py-4 rounded-xl font-black text-white shadow-lg shadow-pink-500/20">SAVE CHANGES</button>
+            <button onclick="showView('account')" class="w-full mt-4 text-slate-500 font-bold">Cancel</button>
+        </div>
+    </section>
+
+    <!-- MINIGAME: EGG CATCH -->
     <section id="view-catch" class="container mx-auto px-4 py-8 hidden">
-        <div class="flex items-center justify-between mb-6">
-            <button onclick="showView('hub')" class="text-xs font-black uppercase text-slate-500">← Hub</button>
+        <div class="flex items-center justify-between mb-6 max-w-md mx-auto">
+            <button onclick="showView('hub')" class="text-xs font-black uppercase text-slate-500 hover:text-white transition-colors">← Hub</button>
             <h2 class="logo-font text-pink-400">Egg Catch</h2>
             <div id="catch-score" class="text-2xl font-black text-pink-400">0</div>
         </div>
         <div class="max-w-md mx-auto relative">
-            <canvas id="catch-canvas" width="400" height="600" class="w-full border-4 border-pink-500/20"></canvas>
-            <div id="catch-ui" class="absolute inset-0 flex items-center justify-center bg-black/60 rounded-xl">
-                <div class="text-center">
-                    <p id="catch-final" class="text-white mb-4 hidden font-bold">GAME OVER</p>
-                    <button onclick="startCatch()" class="bg-pink-500 text-white px-8 py-4 rounded-full font-black text-xl">START CATCHING</button>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="view-blocks" class="container mx-auto px-4 py-8 hidden">
-        <div class="flex items-center justify-between mb-6">
-            <button onclick="showView('hub')" class="text-xs font-black uppercase text-slate-500">← Hub</button>
-            <h2 class="logo-font text-blue-400">Block Build</h2>
-            <div id="blocks-score" class="text-2xl font-black text-blue-400">0</div>
-        </div>
-        <div class="max-w-md mx-auto relative">
-            <canvas id="blocks-canvas" width="400" height="600" class="w-full border-4 border-blue-500/20"></canvas>
-            <div id="blocks-ui" class="absolute inset-0 flex items-center justify-center bg-black/60 rounded-xl">
-                <button onclick="startBlocks()" class="bg-blue-500 text-white px-8 py-4 rounded-full font-black text-xl">START BUILDING</button>
-            </div>
-        </div>
-    </section>
-
-    <section id="view-scrumble" class="container mx-auto px-4 py-8 hidden">
-        <div class="flex items-center justify-between mb-6">
-            <button onclick="showView('hub')" class="text-xs font-black uppercase text-slate-500">← Hub</button>
-            <h2 class="logo-font text-yellow-400">Egg Scrumble</h2>
-            <div id="scrumble-score" class="text-2xl font-black text-yellow-400">0</div>
-        </div>
-        <div class="max-w-md mx-auto relative">
-            <canvas id="scrumble-canvas" width="400" height="600" class="w-full border-4 border-yellow-500/20"></canvas>
-            <div id="scrumble-ui" class="absolute inset-0 flex items-center justify-center bg-black/60 rounded-xl">
-                <button onclick="startScrumble()" class="bg-yellow-500 text-black px-8 py-4 rounded-full font-black text-xl">START STACKING</button>
-            </div>
-        </div>
-    </section>
-
-    <section id="view-hop" class="container mx-auto px-4 py-8 hidden">
-        <div class="flex items-center justify-between mb-6">
-            <button onclick="showView('hub')" class="text-xs font-black uppercase text-slate-500">← Hub</button>
-            <h2 class="logo-font text-green-400">Bunny Hop</h2>
-            <div id="hop-score" class="text-2xl font-black text-green-400">0</div>
-        </div>
-        <div class="max-w-md mx-auto relative">
-            <canvas id="hop-canvas" width="400" height="600" class="w-full border-4 border-green-500/20"></canvas>
-            <div id="hop-ui" class="absolute inset-0 flex items-center justify-center bg-black/60 rounded-xl">
-                <button onclick="startHop()" class="bg-green-500 text-black px-8 py-4 rounded-full font-black text-xl">START HOPPING</button>
+            <canvas id="catch-canvas" width="400" height="600" class="w-full border-4 border-pink-500/20 shadow-2xl"></canvas>
+            <div id="catch-ui" class="absolute inset-0 flex items-center justify-center bg-black/60 rounded-xl backdrop-blur-sm">
+                <button onclick="startCatch()" class="bg-pink-500 text-white px-8 py-4 rounded-full font-black text-xl hover:scale-110 transition-transform">START CATCHING</button>
             </div>
         </div>
     </section>
 
     <script>
-        let currentUser = null;
+        // --- CONFIG & STATE ---
+        const API_URL = "https://bluebird-backend-api.onrender.com";
+        const GOOGLE_CLIENT_ID = "607124730463-rourlv2ariaqrji9cded64pk0otujkca.apps.googleusercontent.com"; 
+        
+        let user = null;
+        let selectedAvatar = "";
+        let totalEggs = 0;
 
-        // --- GOOGLE LOGIN HANDLING ---
+        // --- GOOGLE SIGN IN FLOW ---
+        window.handleGoogleCredentialResponse = (response) => {
+            const responsePayload = parseJwt(response.credential);
+            
+            // In a real environment, you'd verify this JWT on the backend:
+            // fetch(API_URL + '/google-auth', { method: 'POST', body: JSON.stringify({ token: response.credential }) })
+
+            const userData = {
+                id: responsePayload.sub,
+                username: responsePayload.name,
+                email: responsePayload.email,
+                avatar: responsePayload.picture,
+                eggs: parseInt(localStorage.getItem('eggs_' + responsePayload.email) || 0)
+            };
+
+            loginSession(userData);
+            showView('hub');
+        };
+
         function parseJwt(token) {
             var base64Url = token.split('.')[1];
             var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -270,285 +301,237 @@
             return JSON.parse(jsonPayload);
         }
 
-        function handleCredentialResponse(response) {
-            const user = parseJwt(response.credential);
-            loginUser(user);
+        function initGoogleAuth() {
+            if (typeof google === 'undefined') {
+                setTimeout(initGoogleAuth, 500);
+                return;
+            }
+            google.accounts.id.initialize({
+                client_id: GOOGLE_CLIENT_ID,
+                callback: window.handleGoogleCredentialResponse,
+                auto_select: false
+            });
+            google.accounts.id.renderButton(
+                document.getElementById("google-signin-btn"),
+                { 
+                    theme: "filled_blue", 
+                    size: "large", 
+                    width: "320", 
+                    shape: "pill",
+                    text: "signin_with"
+                }
+            );
         }
 
-        function loginUser(user) {
-            currentUser = user;
-            document.getElementById('login-container').style.display = 'none';
-            document.getElementById('user-profile').style.display = 'flex';
-            document.getElementById('user-name').innerText = user.given_name;
-            document.getElementById('user-pic').src = user.picture;
-            document.getElementById('hub-msg').innerText = `Welcome back, ${user.given_name}!`;
-            document.getElementById('login-warning').style.display = 'none';
-            localStorage.setItem('rohan_user_session', JSON.stringify(user));
+        // --- AUTH LOGIC (EMAIL/PASS) ---
+        async function handleLogin() {
+            const btn = document.getElementById('btn-login');
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-pass').value;
+
+            if(!email || !password) return alert("Please fill all fields");
             
-            // Load eggs specifically for this user email
-            totalEggs = parseInt(localStorage.getItem('eggs_' + user.email) || 0);
-            updateEggDisplay();
+            btn.innerText = "VERIFYING...";
+            btn.disabled = true;
+
+            try {
+                // Mock interaction with backend https://bluebird-backend-api.onrender.com
+                // For demo, we store locally using the email as a key
+                const mockUser = {
+                    id: 'local_' + Date.now(),
+                    username: email.split('@')[0],
+                    email: email,
+                    avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
+                    eggs: parseInt(localStorage.getItem('eggs_' + email) || 0)
+                };
+
+                loginSession(mockUser);
+                showView('hub');
+            } catch (e) {
+                alert("Login failed. Check your connection.");
+            } finally {
+                btn.innerText = "ENTER ARCADE";
+                btn.disabled = false;
+            }
+        }
+
+        async function handleSignup() {
+            const userIn = document.getElementById('signup-user').value;
+            const emailIn = document.getElementById('signup-email').value;
+            const passIn = document.getElementById('signup-pass').value;
+
+            if(!userIn || !emailIn || !passIn) return alert("Fill all fields");
+
+            const mockUser = {
+                id: 'local_' + Date.now(),
+                username: userIn,
+                email: emailIn,
+                avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userIn}`,
+                eggs: 0
+            };
+
+            loginSession(mockUser);
+            showView('hub');
+        }
+
+        function loginSession(userData) {
+            user = userData;
+            localStorage.setItem('arcade_session', JSON.stringify(user));
+            totalEggs = user.eggs;
+            updateUI();
         }
 
         function logout() {
-            localStorage.removeItem('rohan_user_session');
-            location.reload();
+            localStorage.removeItem('arcade_session');
+            user = null;
+            totalEggs = 0;
+            updateUI();
+            showView('hub');
         }
 
-        window.onload = function() {
-            const savedUser = localStorage.getItem('rohan_user_session');
-            if(savedUser) {
-                loginUser(JSON.parse(savedUser));
+        function updateUI() {
+            if(user) {
+                document.getElementById('guest-nav').classList.add('hidden');
+                document.getElementById('user-nav').classList.remove('hidden');
+                document.getElementById('nav-username').innerText = user.username;
+                document.getElementById('nav-avatar').src = user.avatar;
+                document.getElementById('nav-eggs').innerText = `🥚 ${totalEggs}`;
+                
+                document.getElementById('acc-username').innerText = user.username;
+                document.getElementById('acc-email').innerText = user.email;
+                document.getElementById('acc-avatar').src = user.avatar;
+                document.getElementById('acc-eggs').innerText = totalEggs;
+                document.getElementById('acc-level').innerText = Math.floor(totalEggs / 100) + 1;
+                
+                document.getElementById('hub-msg').innerText = `Welcome back, ${user.username}!`;
             } else {
-                updateEggDisplay(); // Show 0 if guest
+                document.getElementById('guest-nav').classList.remove('hidden');
+                document.getElementById('user-nav').classList.add('hidden');
+                document.getElementById('hub-msg').innerText = `Sign in to start your collection!`;
             }
         }
 
-        // --- DATA LOGIC ---
-        let totalEggs = 0;
-        
-        function updateEggDisplay() {
-            const display = document.getElementById('total-eggs-display');
-            if(display) display.innerText = `🥚 ${totalEggs}`;
-            
-            // Only save to disk if logged in
-            if(currentUser) {
-                localStorage.setItem('eggs_' + currentUser.email, totalEggs);
-            }
+        // --- AVATAR MANAGEMENT ---
+        function initAvatarGrid() {
+            const grid = document.getElementById('avatar-grid');
+            const seeds = ['Felix', 'Aneka', 'Zoe', 'Caleb', 'Milo', 'Luna', 'Jasper', 'Finn', 'Oscar', 'Ruby'];
+            grid.innerHTML = seeds.map(s => {
+                const url = `https://api.dicebear.com/7.x/avataaars/svg?seed=${s}`;
+                return `<img src="${url}" class="avatar-option w-full aspect-square bg-slate-800 p-2" onclick="selectAvatar('${url}', this)">`;
+            }).join('');
         }
 
-        function addEggs(amt) {
-            if(!currentUser) {
-                document.getElementById('login-warning').style.display = 'block';
-                setTimeout(() => {
-                    document.getElementById('login-warning').style.display = 'none';
-                }, 3000);
-                return; // DO NOT ADD EGGS IF SIGNED OUT
-            }
-            totalEggs += amt;
-            updateEggDisplay();
+        function selectAvatar(url, el) {
+            document.querySelectorAll('.avatar-option').forEach(img => img.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedAvatar = url;
         }
 
+        function saveAvatar() {
+            if(!selectedAvatar) return alert("Select an avatar first!");
+            user.avatar = selectedAvatar;
+            localStorage.setItem('arcade_session', JSON.stringify(user));
+            updateUI();
+            showView('account');
+        }
+
+        // --- CORE UI CONTROLLER ---
         function showView(viewId) {
-            ['hub', 'scrumble', 'hop', 'blocks', 'catch'].forEach(v => {
-                const el = document.getElementById('view-'+v);
+            stopAllGames();
+            ['hub', 'login', 'signup', 'account', 'avatar', 'catch'].forEach(v => {
+                const el = document.getElementById('view-' + v);
                 if(el) el.classList.add('hidden');
             });
-            document.getElementById('view-' + viewId).classList.remove('hidden');
-            stopAllGames();
+            const target = document.getElementById('view-' + viewId);
+            if(target) target.classList.remove('hidden');
+            
+            if(viewId === 'login') initGoogleAuth();
+            window.scrollTo(0,0);
+        }
+
+        // --- GAME LOGIC: EGG CATCH ---
+        let catchActive = false;
+        function startCatch() {
+            catchActive = true;
+            document.getElementById('catch-ui').classList.add('hidden');
+            const canvas = document.getElementById('catch-canvas');
+            const ctx = canvas.getContext('2d');
+            let basketX = 160;
+            let score = 0;
+            let eggs = [];
+
+            function loop() {
+                if(!catchActive) return;
+                ctx.clearRect(0,0,400,600);
+                
+                // Draw Basket
+                ctx.fillStyle = "#f472b6";
+                ctx.fillRect(basketX, 560, 80, 20);
+                
+                if(Math.random() < 0.04) eggs.push({x: Math.random()*370 + 10, y: 0});
+                
+                eggs.forEach((e, i) => {
+                    e.y += 5;
+                    ctx.font = "30px Arial";
+                    ctx.fillText("🥚", e.x - 15, e.y);
+                    
+                    if(e.y > 560 && e.x > basketX && e.x < basketX + 80) {
+                        eggs.splice(i, 1);
+                        score += 10;
+                        document.getElementById('catch-score').innerText = score;
+                        addEggs(1);
+                    } else if(e.y > 600) {
+                        gameOver();
+                    }
+                });
+                requestAnimationFrame(loop);
+            }
+
+            function gameOver() {
+                catchActive = false;
+                document.getElementById('catch-ui').classList.remove('hidden');
+                document.getElementById('catch-ui').querySelector('button').innerText = "TRY AGAIN";
+            }
+
+            canvas.onmousemove = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                basketX = (e.clientX - rect.left) * scaleX - 40;
+                if(basketX < 0) basketX = 0;
+                if(basketX > 320) basketX = 320;
+            };
+            
+            loop();
         }
 
         function stopAllGames() {
-            blocksActive = false;
-            scrumbleActive = false;
-            hopActive = false;
             catchActive = false;
         }
 
-        // --- GAME: EGG CATCH ---
-        let catchActive = false, catchScore = 0, catchLives = 3;
-        const cCanvas = document.getElementById('catch-canvas');
-        const cCtx = cCanvas.getContext('2d');
-        let basket = { x: 160, w: 80, h: 20 };
-        let fallingEggs = [];
-
-        function startCatch() {
-            catchActive = true; catchScore = 0; catchLives = 3; fallingEggs = [];
-            document.getElementById('catch-score').innerText = "0";
-            document.getElementById('catch-ui').classList.add('hidden');
-            document.getElementById('catch-final').classList.add('hidden');
-            requestAnimationFrame(catchLoop);
+        function addEggs(amt) {
+            if(!user) {
+                document.getElementById('login-warning').style.display = 'block';
+                setTimeout(() => document.getElementById('login-warning').style.display = 'none', 3000);
+                return;
+            }
+            totalEggs += amt;
+            user.eggs = totalEggs;
+            localStorage.setItem('eggs_' + user.email, totalEggs);
+            localStorage.setItem('arcade_session', JSON.stringify(user));
+            updateUI();
         }
 
-        function catchLoop() {
-            if (!catchActive) return;
-            cCtx.clearRect(0,0,400,600);
-            
-            // Draw Basket
-            cCtx.fillStyle = '#f472b6';
-            cCtx.fillRect(basket.x, 560, basket.w, basket.h);
-
-            // Spawn Eggs
-            if (Math.random() < 0.02) {
-                fallingEggs.push({ x: Math.random() * 360, y: -20, speed: 2 + Math.random() * 3 });
+        // --- INIT ---
+        window.onload = () => {
+            const saved = localStorage.getItem('arcade_session');
+            if(saved) {
+                user = JSON.parse(saved);
+                totalEggs = parseInt(localStorage.getItem('eggs_' + user.email) || user.eggs || 0);
             }
-
-            // Update Eggs
-            for (let i = fallingEggs.length - 1; i >= 0; i--) {
-                let e = fallingEggs[i];
-                e.y += e.speed;
-                cCtx.font = "30px Arial";
-                cCtx.fillText("🥚", e.x, e.y);
-
-                // Collision
-                if (e.y > 540 && e.y < 580 && e.x + 20 > basket.x && e.x < basket.x + basket.w) {
-                    fallingEggs.splice(i, 1);
-                    catchScore += 10;
-                    document.getElementById('catch-score').innerText = catchScore;
-                    addEggs(1);
-                } else if (e.y > 600) {
-                    fallingEggs.splice(i, 1);
-                    catchLives--;
-                    if (catchLives <= 0) {
-                        catchActive = false;
-                        document.getElementById('catch-ui').classList.remove('hidden');
-                        document.getElementById('catch-final').classList.remove('hidden');
-                        document.getElementById('catch-final').innerText = `GAME OVER! SCORE: ${catchScore}`;
-                    }
-                }
-            }
-
-            // Draw Lives
-            cCtx.fillStyle = "white";
-            cCtx.font = "14px Inter";
-            cCtx.fillText(`LIVES: ${"❤️".repeat(catchLives)}`, 10, 20);
-
-            requestAnimationFrame(catchLoop);
-        }
-
-        cCanvas.onmousemove = (e) => {
-            const rect = cCanvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            basket.x = x - basket.w/2;
-            if(basket.x < 0) basket.x = 0;
-            if(basket.x + basket.w > 400) basket.x = 400 - basket.w;
+            initAvatarGrid();
+            updateUI();
         };
 
-        // --- GAME: BLOCK BUILD ---
-        let blocksActive = false, blocksScore = 0;
-        const bCanvas = document.getElementById('blocks-canvas');
-        const bCtx = bCanvas.getContext('2d');
-        let currentBlock = { x: 0, w: 100, speed: 3 };
-        let tower = [{ x: 100, w: 200, y: 580 }];
-
-        function startBlocks() {
-            blocksActive = true; blocksScore = 0;
-            tower = [{ x: 100, w: 200, y: 580 }];
-            currentBlock = { x: 0, w: 200, speed: 3 };
-            document.getElementById('blocks-score').innerText = "0";
-            document.getElementById('blocks-ui').classList.add('hidden');
-            requestAnimationFrame(blocksLoop);
-        }
-
-        function blocksLoop() {
-            if (!blocksActive) return;
-            bCtx.clearRect(0, 0, 400, 600);
-            tower.forEach(b => {
-                bCtx.fillStyle = '#3b82f6';
-                bCtx.fillRect(b.x, b.y, b.w, 30);
-            });
-            currentBlock.x += currentBlock.speed;
-            if (currentBlock.x + currentBlock.w > 400 || currentBlock.x < 0) currentBlock.speed *= -1;
-            bCtx.fillStyle = '#60a5fa';
-            bCtx.fillRect(currentBlock.x, tower[tower.length-1].y - 30, currentBlock.w, 30);
-            requestAnimationFrame(blocksLoop);
-        }
-
-        bCanvas.onmousedown = () => {
-            if (!blocksActive) return;
-            const top = tower[tower.length - 1];
-            const overlapX = Math.max(currentBlock.x, top.x);
-            const overlapW = Math.min(currentBlock.x + currentBlock.w, top.x + top.w) - overlapX;
-            if (overlapW > 0) {
-                tower.push({ x: overlapX, w: overlapW, y: top.y - 30 });
-                currentBlock.w = overlapW;
-                blocksScore++;
-                document.getElementById('blocks-score').innerText = blocksScore;
-                addEggs(10);
-            } else {
-                blocksActive = false;
-                document.getElementById('blocks-ui').classList.remove('hidden');
-            }
-        };
-
-        // --- GAME: EGG SCRUMBLE ---
-        let scrumbleActive = false, scrumbleScore = 0;
-        const sCanvas = document.getElementById('scrumble-canvas');
-        const sCtx = sCanvas.getContext('2d');
-        let currentEgg = { x: 200, y: 50, w: 40, h: 50, speed: 4 };
-        let stack = [{ x: 100, y: 580, w: 200, h: 20 }];
-
-        function startScrumble() {
-            scrumbleActive = true; scrumbleScore = 0; stack = [{ x: 100, y: 580, w: 200, h: 20 }];
-            document.getElementById('scrumble-score').innerText = "0";
-            document.getElementById('scrumble-ui').classList.add('hidden');
-            requestAnimationFrame(scrumbleLoop);
-        }
-
-        function scrumbleLoop() {
-            if (!scrumbleActive) return;
-            sCtx.clearRect(0,0,400,600);
-            sCtx.fillStyle = '#fbbf24';
-            stack.forEach(b => sCtx.fillRect(b.x, b.y, b.w, b.h));
-            currentEgg.x += currentEgg.speed;
-            if (currentEgg.x > 400 - currentEgg.w || currentEgg.x < 0) currentEgg.speed *= -1;
-            sCtx.font = "40px Arial";
-            sCtx.fillText("🥚", currentEgg.x, currentEgg.y + 40);
-            requestAnimationFrame(scrumbleLoop);
-        }
-
-        sCanvas.onmousedown = () => {
-            if (!scrumbleActive) return;
-            const prev = stack[stack.length-1];
-            if (currentEgg.x + currentEgg.w > prev.x && currentEgg.x < prev.x + prev.w) {
-                stack.push({ x: currentEgg.x, y: prev.y - 40, w: currentEgg.w, h: 40 });
-                scrumbleScore += 50;
-                document.getElementById('scrumble-score').innerText = scrumbleScore;
-                addEggs(5);
-            } else {
-                scrumbleActive = false;
-                document.getElementById('scrumble-ui').classList.remove('hidden');
-            }
-        };
-
-        // --- GAME: BUNNY HOP ---
-        let hopActive = false, hopScore = 0;
-        const hCanvas = document.getElementById('hop-canvas');
-        const hCtx = hCanvas.getContext('2d');
-        let bunny = { x: 200, y: 500, vy: 0, size: 30 };
-        let platforms = [];
-
-        function startHop() {
-            hopActive = true; hopScore = 0;
-            bunny = { x: 200, y: 500, vy: 0, size: 30 };
-            platforms = [];
-            for(let i=0; i<6; i++) platforms.push({ x: Math.random()*300, y: i*100, w: 80 });
-            document.getElementById('hop-score').innerText = "0";
-            document.getElementById('hop-ui').classList.add('hidden');
-            requestAnimationFrame(hopLoop);
-        }
-
-        function hopLoop() {
-            if (!hopActive) return;
-            hCtx.clearRect(0,0,400,600);
-            bunny.vy += 0.4;
-            bunny.y += bunny.vy;
-            platforms.forEach(p => {
-                hCtx.fillStyle = '#4ade80';
-                hCtx.fillRect(p.x, p.y, p.w, 10);
-                if (bunny.vy > 0 && bunny.y + bunny.size > p.y && bunny.y < p.y + 10 && bunny.x + bunny.size > p.x && bunny.x < p.x + p.w) {
-                    bunny.vy = -12;
-                    hopScore += 10;
-                    document.getElementById('hop-score').innerText = hopScore;
-                    addEggs(1);
-                }
-                if (bunny.y < 300) {
-                    const diff = 300 - bunny.y;
-                    bunny.y = 300;
-                    p.y += diff;
-                    if (p.y > 600) { p.y = 0; p.x = Math.random()*320; }
-                }
-            });
-            hCtx.font = "30px Arial";
-            hCtx.fillText("🐰", bunny.x, bunny.y);
-            if (bunny.y > 600) { hopActive = false; document.getElementById('hop-ui').classList.remove('hidden'); }
-            requestAnimationFrame(hopLoop);
-        }
-
-        window.onkeydown = (e) => {
-            if (e.key === 'ArrowLeft') bunny.x -= 20;
-            if (e.key === 'ArrowRight') bunny.x += 20;
-        };
     </script>
 </body>
 </html>
