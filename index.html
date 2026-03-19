@@ -73,9 +73,26 @@
         .status-badge { font-size: 0.65rem; padding: 2px 8px; border-radius: 99px; text-transform: uppercase; font-weight: 900; }
         
         #user-profile { display: none; align-items: center; gap: 8px; background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 99px; }
+        
+        .login-warning {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #ef4444;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: bold;
+            z-index: 1000;
+            animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp { from { transform: translateY(100px); } to { transform: translateY(0); } }
     </style>
 </head>
 <body class="min-h-screen">
+
+    <div id="login-warning" class="login-warning">⚠️ Sign in to save your eggs!</div>
 
     <nav class="bg-slate-950/80 backdrop-blur-xl p-4 sticky top-0 z-[100] border-b border-pink-500/20">
         <div class="container mx-auto flex justify-between items-center">
@@ -112,7 +129,7 @@
     <section id="view-hub" class="container mx-auto px-4 py-12 max-w-6xl">
         <div class="mb-12 text-center">
             <h2 class="spice-font text-5xl md:text-7xl mb-4">EASTER FESTIVAL</h2>
-            <p class="text-slate-400 font-medium italic">Play locally and collect eggs!</p>
+            <p id="hub-msg" class="text-slate-400 font-medium italic">Sign in to start your collection!</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -130,6 +147,18 @@
                 </div>
             </a>
 
+            <div onclick="showView('catch')" class="hub-card glass-panel p-6 border-pink-500/30 group">
+                <div class="h-40 rounded-xl bg-gradient-to-br from-pink-600 to-purple-800 mb-4 flex items-center justify-center relative overflow-hidden">
+                    <span class="text-6xl group-hover:scale-125 transition-transform">🧺</span>
+                </div>
+                <h3 class="logo-font text-xl mb-1 text-pink-400">EGG CATCH</h3>
+                <p class="text-xs text-slate-400 mb-4">Action: Catch as many falling eggs as you can!</p>
+                <div class="flex justify-between items-center">
+                    <span class="status-badge bg-pink-500/20 text-pink-400">Newly Added</span>
+                    <span class="text-xs font-black text-pink-400">PLAY →</span>
+                </div>
+            </div>
+
             <div onclick="showView('blocks')" class="hub-card glass-panel p-6 border-blue-500/30 group">
                 <div class="h-40 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-800 mb-4 flex items-center justify-center relative overflow-hidden">
                     <span class="text-6xl group-hover:rotate-12 transition-transform">🏗️</span>
@@ -144,7 +173,7 @@
 
             <div onclick="showView('scrumble')" class="hub-card glass-panel p-6 border-yellow-500/30 group">
                 <div class="h-40 rounded-xl bg-gradient-to-br from-yellow-600 to-orange-800 mb-4 flex items-center justify-center relative overflow-hidden">
-                    <span class="text-6xl group-hover:rotate-12 transition-transform">🧺</span>
+                    <span class="text-6xl group-hover:rotate-12 transition-transform">🥚</span>
                 </div>
                 <h3 class="logo-font text-xl mb-1 text-yellow-400">EGG SCRUMBLE</h3>
                 <p class="text-xs text-slate-400 mb-4">Physics: Stack the falling eggs as high as possible!</p>
@@ -169,6 +198,23 @@
     </section>
 
     <!-- GAME VIEWS -->
+    <section id="view-catch" class="container mx-auto px-4 py-8 hidden">
+        <div class="flex items-center justify-between mb-6">
+            <button onclick="showView('hub')" class="text-xs font-black uppercase text-slate-500">← Hub</button>
+            <h2 class="logo-font text-pink-400">Egg Catch</h2>
+            <div id="catch-score" class="text-2xl font-black text-pink-400">0</div>
+        </div>
+        <div class="max-w-md mx-auto relative">
+            <canvas id="catch-canvas" width="400" height="600" class="w-full border-4 border-pink-500/20"></canvas>
+            <div id="catch-ui" class="absolute inset-0 flex items-center justify-center bg-black/60 rounded-xl">
+                <div class="text-center">
+                    <p id="catch-final" class="text-white mb-4 hidden font-bold">GAME OVER</p>
+                    <button onclick="startCatch()" class="bg-pink-500 text-white px-8 py-4 rounded-full font-black text-xl">START CATCHING</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <section id="view-blocks" class="container mx-auto px-4 py-8 hidden">
         <div class="flex items-center justify-between mb-6">
             <button onclick="showView('hub')" class="text-xs font-black uppercase text-slate-500">← Hub</button>
@@ -212,6 +258,8 @@
     </section>
 
     <script>
+        let currentUser = null;
+
         // --- GOOGLE LOGIN HANDLING ---
         function parseJwt(token) {
             var base64Url = token.split('.')[1];
@@ -224,11 +272,22 @@
 
         function handleCredentialResponse(response) {
             const user = parseJwt(response.credential);
+            loginUser(user);
+        }
+
+        function loginUser(user) {
+            currentUser = user;
             document.getElementById('login-container').style.display = 'none';
             document.getElementById('user-profile').style.display = 'flex';
             document.getElementById('user-name').innerText = user.given_name;
             document.getElementById('user-pic').src = user.picture;
+            document.getElementById('hub-msg').innerText = `Welcome back, ${user.given_name}!`;
+            document.getElementById('login-warning').style.display = 'none';
             localStorage.setItem('rohan_user_session', JSON.stringify(user));
+            
+            // Load eggs specifically for this user email
+            totalEggs = parseInt(localStorage.getItem('eggs_' + user.email) || 0);
+            updateEggDisplay();
         }
 
         function logout() {
@@ -236,35 +295,42 @@
             location.reload();
         }
 
-        // Check for existing session on load
         window.onload = function() {
             const savedUser = localStorage.getItem('rohan_user_session');
             if(savedUser) {
-                const user = JSON.parse(savedUser);
-                document.getElementById('login-container').style.display = 'none';
-                document.getElementById('user-profile').style.display = 'flex';
-                document.getElementById('user-name').innerText = user.given_name;
-                document.getElementById('user-pic').src = user.picture;
+                loginUser(JSON.parse(savedUser));
+            } else {
+                updateEggDisplay(); // Show 0 if guest
             }
         }
 
-        // --- LOCAL STORAGE DATA ---
-        let totalEggs = parseInt(localStorage.getItem('rohan_total_eggs') || 0);
+        // --- DATA LOGIC ---
+        let totalEggs = 0;
         
         function updateEggDisplay() {
             const display = document.getElementById('total-eggs-display');
             if(display) display.innerText = `🥚 ${totalEggs}`;
-            localStorage.setItem('rohan_total_eggs', totalEggs);
+            
+            // Only save to disk if logged in
+            if(currentUser) {
+                localStorage.setItem('eggs_' + currentUser.email, totalEggs);
+            }
         }
-        updateEggDisplay();
 
         function addEggs(amt) {
+            if(!currentUser) {
+                document.getElementById('login-warning').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('login-warning').style.display = 'none';
+                }, 3000);
+                return; // DO NOT ADD EGGS IF SIGNED OUT
+            }
             totalEggs += amt;
             updateEggDisplay();
         }
 
         function showView(viewId) {
-            ['hub', 'scrumble', 'hop', 'blocks'].forEach(v => {
+            ['hub', 'scrumble', 'hop', 'blocks', 'catch'].forEach(v => {
                 const el = document.getElementById('view-'+v);
                 if(el) el.classList.add('hidden');
             });
@@ -276,7 +342,77 @@
             blocksActive = false;
             scrumbleActive = false;
             hopActive = false;
+            catchActive = false;
         }
+
+        // --- GAME: EGG CATCH ---
+        let catchActive = false, catchScore = 0, catchLives = 3;
+        const cCanvas = document.getElementById('catch-canvas');
+        const cCtx = cCanvas.getContext('2d');
+        let basket = { x: 160, w: 80, h: 20 };
+        let fallingEggs = [];
+
+        function startCatch() {
+            catchActive = true; catchScore = 0; catchLives = 3; fallingEggs = [];
+            document.getElementById('catch-score').innerText = "0";
+            document.getElementById('catch-ui').classList.add('hidden');
+            document.getElementById('catch-final').classList.add('hidden');
+            requestAnimationFrame(catchLoop);
+        }
+
+        function catchLoop() {
+            if (!catchActive) return;
+            cCtx.clearRect(0,0,400,600);
+            
+            // Draw Basket
+            cCtx.fillStyle = '#f472b6';
+            cCtx.fillRect(basket.x, 560, basket.w, basket.h);
+
+            // Spawn Eggs
+            if (Math.random() < 0.02) {
+                fallingEggs.push({ x: Math.random() * 360, y: -20, speed: 2 + Math.random() * 3 });
+            }
+
+            // Update Eggs
+            for (let i = fallingEggs.length - 1; i >= 0; i--) {
+                let e = fallingEggs[i];
+                e.y += e.speed;
+                cCtx.font = "30px Arial";
+                cCtx.fillText("🥚", e.x, e.y);
+
+                // Collision
+                if (e.y > 540 && e.y < 580 && e.x + 20 > basket.x && e.x < basket.x + basket.w) {
+                    fallingEggs.splice(i, 1);
+                    catchScore += 10;
+                    document.getElementById('catch-score').innerText = catchScore;
+                    addEggs(1);
+                } else if (e.y > 600) {
+                    fallingEggs.splice(i, 1);
+                    catchLives--;
+                    if (catchLives <= 0) {
+                        catchActive = false;
+                        document.getElementById('catch-ui').classList.remove('hidden');
+                        document.getElementById('catch-final').classList.remove('hidden');
+                        document.getElementById('catch-final').innerText = `GAME OVER! SCORE: ${catchScore}`;
+                    }
+                }
+            }
+
+            // Draw Lives
+            cCtx.fillStyle = "white";
+            cCtx.font = "14px Inter";
+            cCtx.fillText(`LIVES: ${"❤️".repeat(catchLives)}`, 10, 20);
+
+            requestAnimationFrame(catchLoop);
+        }
+
+        cCanvas.onmousemove = (e) => {
+            const rect = cCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            basket.x = x - basket.w/2;
+            if(basket.x < 0) basket.x = 0;
+            if(basket.x + basket.w > 400) basket.x = 400 - basket.w;
+        };
 
         // --- GAME: BLOCK BUILD ---
         let blocksActive = false, blocksScore = 0;
