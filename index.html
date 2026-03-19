@@ -109,9 +109,9 @@
 
     <!-- Error Messaging (for unauthorized domain) -->
     <div id="auth-error-msg" class="hidden fixed bottom-4 right-4 max-w-sm glass-panel p-4 border-red-500/50 z-[1000]">
-        <p class="text-xs text-red-400 font-bold mb-2">Auth Error: Setup Required</p>
-        <p class="text-[10px] text-slate-300">This domain is not authorized yet. Please copy this hostname and add it to your Firebase Console under Auth > Settings > Authorized Domains:</p>
-        <code id="current-domain-code" class="block bg-black/40 p-2 mt-2 rounded text-[10px] text-pink-300 break-all select-all"></code>
+        <p class="text-xs text-red-400 font-bold mb-2">Auth Status Update</p>
+        <p class="text-[10px] text-slate-300">Detail: <span id="error-reason" class="text-white"></span></p>
+        <p class="text-[10px] text-slate-300 mt-2">Hostname: <code id="current-domain-code" class="bg-black/40 p-1 rounded text-pink-300"></code></p>
         <button onclick="this.parentElement.classList.add('hidden')" class="mt-2 text-[10px] font-black text-slate-500 uppercase">Dismiss</button>
     </div>
 
@@ -239,11 +239,11 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
 
         // Firebase Config
         const firebaseConfig = {
-            apiKey: "AIzaSyCxV...", // Note: Usually provided by __firebase_config if in Canvas, otherwise hardcode your key
+            apiKey: "AIzaSyCxV...", // Make sure this is your ACTUAL real API key
             authDomain: "gamehub-rohansweb.firebaseapp.com",
             projectId: "gamehub-rohansweb",
             storageBucket: "gamehub-rohansweb.firebasestorage.app",
@@ -251,37 +251,42 @@
             appId: "1:607124730463:web:..."
         };
 
-        // Try to load dynamic config if available
+        // Use environment config if available
         const actualConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : firebaseConfig;
-
         const app = initializeApp(actualConfig);
         const auth = getAuth(app);
 
+        // Persistent login
+        setPersistence(auth, browserLocalPersistence);
+
         window.handleGoogleLogin = async () => {
-            console.log("Login attempt started...");
+            console.log("Starting login flow with specific Client ID...");
             const provider = new GoogleAuthProvider();
             
-            // Apply the custom Client ID
+            // Explicitly pass the Client ID provided
+            // This helps resolve domain/handshake mismatches
             provider.setCustomParameters({
                 'prompt': 'select_account',
                 'client_id': '607124730463-rourlv2ariaqrji9cded64pk0otujkca.apps.googleusercontent.com'
             });
 
             try {
+                // If popup still closes, try signInWithRedirect(auth, provider) instead
                 const result = await signInWithPopup(auth, provider);
-                console.log("Logged in user:", result.user.displayName);
+                console.log("User signed in:", result.user.displayName);
             } catch (error) {
-                console.error("Firebase Auth Error:", error.code, error.message);
+                console.error("Login Error:", error);
                 
-                if (error.code === 'auth/unauthorized-domain') {
-                    const domainBox = document.getElementById('auth-error-msg');
-                    const domainCode = document.getElementById('current-domain-code');
-                    domainCode.innerText = window.location.hostname;
-                    domainBox.classList.remove('hidden');
-                } else if(error.code === 'auth/popup-blocked') {
-                    alert("The login popup was blocked by your browser. Please allow popups for this site.");
-                } else {
-                    alert("Auth error: " + error.message);
+                const errBox = document.getElementById('auth-error-msg');
+                const errReason = document.getElementById('error-reason');
+                const errDomain = document.getElementById('current-domain-code');
+                
+                errBox.classList.remove('hidden');
+                errDomain.innerText = window.location.hostname;
+                errReason.innerText = error.code + ": " + error.message;
+
+                if (error.code === 'auth/popup-closed-by-user') {
+                    errReason.innerText = "The popup was closed too early. Check if your browser is blocking it or if the domain is whitelisted in Google Cloud Console.";
                 }
             }
         };
