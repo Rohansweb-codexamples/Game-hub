@@ -3,122 +3,474 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rohan's Web Game Hub | Coming Soon</title>
+    <title>Rohan's Easter Arcade Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bungee+Spice&family=Bungee&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
-
         :root {
-            --bg: #020617;
+            --primary-pink: #f472b6;
+            --primary-yellow: #fbbf24;
+            --primary-blue: #3b82f6;
+            --bg-dark: #020617;
         }
 
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden; /* Disable scrolling */
-            background-color: var(--bg);
-            color: #f8fafc;
-            font-family: 'Orbitron', sans-serif;
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark); 
+            background-image: radial-gradient(#1e293b 1.5px, transparent 1.5px);
+            background-size: 30px 30px;
+            color: #f1f5f9;
+            overflow-x: hidden;
         }
 
-        .animated-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            background: radial-gradient(circle at 50% 50%, #1e1b4b 0%, #020617 100%);
+        .spice-font { font-family: 'Bungee Spice', cursive; }
+        .logo-font { font-family: 'Bungee', cursive; }
+        
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(244, 114, 182, 0.2);
+            border-radius: 24px;
         }
 
-        .glow-text {
-            text-shadow: 0 0 20px rgba(139, 92, 246, 0.6), 0 0 40px rgba(139, 92, 246, 0.3);
+        .hub-card {
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
         }
 
-        .gradient-text {
-            background: linear-gradient(to right, #8b5cf6, #ec4899);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .hub-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            border-color: var(--primary-pink);
+            box-shadow: 0 20px 40px rgba(244, 114, 182, 0.15);
         }
 
-        .pixel-grid {
-            background-image: linear-gradient(rgba(139, 92, 246, 0.05) 1px, transparent 1px),
-                              linear-gradient(90deg, rgba(139, 92, 246, 0.05) 1px, transparent 1px);
-            background-size: 50px 50px;
+        .goty-card {
+            border: 2px solid #fbbf24 !important;
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(217, 119, 6, 0.1));
+        }
+
+        .egg-shimmer {
             position: absolute;
-            inset: 0;
-            z-index: 0;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: rotate(45deg);
+            animation: shimmer 4s infinite;
         }
 
-        /* Scanline effect */
-        .scanline {
-            width: 100%;
-            height: 100px;
-            z-index: 10;
-            background: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(139, 92, 246, 0.05) 50%, rgba(0, 0, 0, 0) 100%);
-            opacity: 0.1;
-            position: absolute;
-            bottom: 100%;
-            animation: scanline 8s linear infinite;
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
         }
 
-        @keyframes scanline {
-            0% { bottom: 100%; }
-            100% { bottom: -100px; }
-        }
+        canvas { background: #0f172a; border-radius: 16px; cursor: crosshair; display: block; margin: 0 auto; }
+        .status-badge { font-size: 0.65rem; padding: 2px 8px; border-radius: 99px; text-transform: uppercase; font-weight: 900; }
 
-        .floating {
-            animation: float 4s ease-in-out infinite;
+        .user-pill {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.2s;
         }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
-        }
+        .user-pill:hover { background: rgba(255, 255, 255, 0.1); }
     </style>
 </head>
-<body class="flex items-center justify-center">
+<body class="min-h-screen">
 
-    <div class="animated-bg"></div>
-    <div class="pixel-grid"></div>
-    <div class="scanline"></div>
+    <nav class="bg-slate-950/80 backdrop-blur-xl p-4 sticky top-0 z-[100] border-b border-pink-500/20">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <span class="text-3xl">🐰</span>
+                <h1 class="logo-font text-xl md:text-2xl text-white tracking-tighter">ROHAN'S <span class="text-pink-400">ARCADE</span></h1>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <div id="auth-section" class="hidden md:flex items-center gap-3">
+                    <button id="btn-login" onclick="handleGoogleLogin()" class="user-pill px-4 py-1.5 rounded-full text-xs font-bold text-slate-300 flex items-center gap-2">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                        Sign in
+                    </button>
+                    <div id="user-info" class="hidden flex items-center gap-3">
+                        <span id="user-name" class="text-xs font-bold text-slate-300"></span>
+                        <button onclick="handleLogout()" class="text-[10px] uppercase font-black text-pink-500 hover:text-white">Logout</button>
+                    </div>
+                </div>
 
-    <div class="relative z-20 text-center px-6">
-        <!-- Logo Icon -->
-        <div class="floating mb-8 flex justify-center">
-            <div class="w-20 h-20 bg-gradient-to-br from-violet-600 to-pink-500 rounded-2xl flex items-center justify-center shadow-2xl shadow-violet-500/40 transform rotate-12">
-                <i class="fas fa-gamepad text-white text-4xl -rotate-12"></i>
+                <div class="glass-panel px-4 py-1.5 flex items-center gap-2 border-yellow-500/30">
+                    <span class="text-yellow-400 font-black" id="total-eggs-display">🥚 0</span>
+                </div>
+                <button onclick="showView('hub')" class="text-xs font-black uppercase text-pink-400 hover:text-white transition-colors">Home</button>
             </div>
         </div>
+    </nav>
 
-        <!-- Branding -->
-        <h2 class="text-violet-400 text-sm md:text-lg font-bold tracking-[0.4em] uppercase mb-4 opacity-80">
-            Rohan's Web Game Hub
-        </h2>
-
-        <!-- Main Title -->
-        <h1 class="text-6xl md:text-9xl font-black mb-6 tracking-tighter glow-text leading-none">
-            COMING <br> <span class="gradient-text">SOON</span>
-        </h1>
-
-        <!-- Subtext -->
-        <div class="flex items-center justify-center space-x-4 text-slate-500 font-bold text-xs md:text-sm tracking-widest uppercase">
-            <span class="w-12 h-[1px] bg-slate-800"></span>
-            <span>Leveling Up</span>
-            <span class="w-12 h-[1px] bg-slate-800"></span>
-        </div>
+    <!-- Error Messaging (for unauthorized domain) -->
+    <div id="auth-error-msg" class="hidden fixed bottom-4 right-4 max-w-sm glass-panel p-4 border-red-500/50 z-[1000]">
+        <p class="text-xs text-red-400 font-bold mb-2">Auth Error: Unauthorized Domain</p>
+        <p class="text-[10px] text-slate-300">You must add this domain to Firebase Console > Auth > Settings > Authorized Domains:</p>
+        <code id="current-domain-code" class="block bg-black/40 p-2 mt-2 rounded text-[10px] text-pink-300 break-all select-all"></code>
+        <button onclick="this.parentElement.classList.add('hidden')" class="mt-2 text-[10px] font-black text-slate-500 uppercase">Dismiss</button>
     </div>
 
-    <!-- Mouse Interaction Script -->
-    <script>
-        window.addEventListener('mousemove', (e) => {
-            const moveX = (e.clientX - window.innerWidth / 2) * 0.02;
-            const moveY = (e.clientY - window.innerHeight / 2) * 0.02;
-            document.querySelector('.animated-bg').style.transform = `translate(${moveX}px, ${moveY}px)`;
+    <!-- HUB VIEW -->
+    <section id="view-hub" class="container mx-auto px-4 py-12 max-w-6xl">
+        <div class="mb-12 text-center">
+            <h2 class="spice-font text-5xl md:text-7xl mb-4">EASTER FESTIVAL</h2>
+            <p class="text-slate-400 font-medium italic">Discover the best of Rohan's Web Games!</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- GOTY: Shelly 3D (EXTERNAL) -->
+            <a href="https://gamehub.rohansweb.co.uk/shelly-3d" target="_blank" class="hub-card glass-panel p-6 goty-card group block">
+                <div class="egg-shimmer"></div>
+                <div class="h-40 rounded-xl bg-gradient-to-br from-yellow-500 to-amber-700 mb-4 flex items-center justify-center relative overflow-hidden">
+                    <span class="text-6xl group-hover:scale-110 transition-transform duration-500">🐢</span>
+                    <div class="absolute top-2 right-2 bg-yellow-400 text-black font-black text-[10px] px-2 py-1 rounded">GOTY 2024</div>
+                </div>
+                <h3 class="logo-font text-xl mb-1 text-yellow-400">SHELLY 3D</h3>
+                <p class="text-xs text-slate-400 mb-4">Game of the Year: Explore an immersive 3D world with Shelly!</p>
+                <div class="flex justify-between items-center">
+                    <span class="status-badge bg-yellow-500/20 text-yellow-400 font-black">Award Winner</span>
+                    <span class="text-xs font-black text-yellow-400 group-hover:translate-x-1 transition-transform">PLAY NOW 🔗</span>
+                </div>
+            </a>
+
+            <!-- Game 2: Block Build -->
+            <div onclick="showView('blocks')" class="hub-card glass-panel p-6 border-blue-500/30 group">
+                <div class="h-40 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-800 mb-4 flex items-center justify-center relative overflow-hidden">
+                    <span class="text-6xl group-hover:rotate-12 transition-transform">🏗️</span>
+                </div>
+                <h3 class="logo-font text-xl mb-1 text-blue-400">BLOCK BUILD</h3>
+                <p class="text-xs text-slate-400 mb-4">Creative: Construct massive towers and buildings block by block.</p>
+                <div class="flex justify-between items-center">
+                    <span class="status-badge bg-blue-500/20 text-blue-400">New Game</span>
+                    <span class="text-xs font-black text-blue-400">PLAY →</span>
+                </div>
+            </div>
+
+            <!-- Link 3: Studio Beats (EXTERNAL) -->
+            <a href="https://gamehub.rohansweb.co.uk/StudioBeats" target="_blank" class="hub-card glass-panel p-6 border-pink-500/30 group block">
+                <div class="h-40 rounded-xl bg-gradient-to-br from-pink-600 to-purple-800 mb-4 flex items-center justify-center relative overflow-hidden">
+                    <span class="text-6xl group-hover:scale-110 transition-transform duration-500">🎹</span>
+                </div>
+                <h3 class="logo-font text-xl mb-1 text-pink-400">STUDIO BEATS</h3>
+                <p class="text-xs text-slate-400 mb-4">Rhythm & Music: Experience the full standalone music creation suite.</p>
+                <div class="flex justify-between items-center">
+                    <span class="status-badge bg-pink-500/20 text-pink-400">External</span>
+                    <span class="text-xs font-black text-pink-400 group-hover:translate-x-1 transition-transform">OPEN SITE 🔗</span>
+                </div>
+            </a>
+
+            <!-- Game 4: Egg Scrumble -->
+            <div onclick="showView('scrumble')" class="hub-card glass-panel p-6 border-yellow-500/30 group">
+                <div class="h-40 rounded-xl bg-gradient-to-br from-yellow-600 to-orange-800 mb-4 flex items-center justify-center relative overflow-hidden">
+                    <span class="text-6xl group-hover:rotate-12 transition-transform">🧺</span>
+                </div>
+                <h3 class="logo-font text-xl mb-1 text-yellow-400">EGG SCRUMBLE</h3>
+                <p class="text-xs text-slate-400 mb-4">Physics: Stack the falling eggs as high as possible!</p>
+                <div class="flex justify-between items-center">
+                    <span class="status-badge bg-green-500/20 text-green-400">Playable</span>
+                    <span class="text-xs font-black text-yellow-400">PLAY →</span>
+                </div>
+            </div>
+
+            <!-- Game 5: Bunny Hop -->
+            <div onclick="showView('hop')" class="hub-card glass-panel p-6 border-green-500/30 group">
+                <div class="h-40 rounded-xl bg-gradient-to-br from-green-600 to-teal-800 mb-4 flex items-center justify-center relative overflow-hidden">
+                    <span class="text-6xl group-hover:-translate-y-4 transition-transform">🐰</span>
+                </div>
+                <h3 class="logo-font text-xl mb-1 text-green-400">BUNNY HOP</h3>
+                <p class="text-xs text-slate-400 mb-4">Platformer: Keep hopping higher. Don't fall!</p>
+                <div class="flex justify-between items-center">
+                    <span class="status-badge bg-green-500/20 text-green-400">Playable</span>
+                    <span class="text-xs font-black text-green-400">PLAY →</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- BLOCK BUILD VIEW -->
+    <section id="view-blocks" class="container mx-auto px-4 py-8 hidden">
+        <div class="flex items-center justify-between mb-6">
+            <button onclick="showView('hub')" class="text-xs font-black uppercase text-slate-500">← Hub</button>
+            <h2 class="logo-font text-blue-400">Block Build</h2>
+            <div id="blocks-score" class="text-2xl font-black text-blue-400">0</div>
+        </div>
+        <div class="max-w-md mx-auto relative">
+            <canvas id="blocks-canvas" width="400" height="600" class="w-full border-4 border-blue-500/20"></canvas>
+            <div id="blocks-ui" class="absolute inset-0 flex items-center justify-center bg-black/60 rounded-xl">
+                <button onclick="startBlocks()" class="bg-blue-500 text-white px-8 py-4 rounded-full font-black text-xl hover:scale-110 transition-transform">START BUILDING</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- EGG SCRUMBLE VIEW -->
+    <section id="view-scrumble" class="container mx-auto px-4 py-8 hidden">
+        <div class="flex items-center justify-between mb-6">
+            <button onclick="showView('hub')" class="text-xs font-black uppercase text-slate-500">← Hub</button>
+            <h2 class="logo-font text-yellow-400">Egg Scrumble</h2>
+            <div id="scrumble-score" class="text-2xl font-black text-yellow-400">0</div>
+        </div>
+        <div class="max-w-md mx-auto relative">
+            <canvas id="scrumble-canvas" width="400" height="600" class="w-full border-4 border-yellow-500/20"></canvas>
+            <div id="scrumble-ui" class="absolute inset-0 flex items-center justify-center bg-black/60 rounded-xl">
+                <button onclick="startScrumble()" class="bg-yellow-500 text-black px-8 py-4 rounded-full font-black text-xl hover:scale-110 transition-transform">START STACKING</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- BUNNY HOP VIEW -->
+    <section id="view-hop" class="container mx-auto px-4 py-8 hidden">
+        <div class="flex items-center justify-between mb-6">
+            <button onclick="showView('hub')" class="text-xs font-black uppercase text-slate-500">← Hub</button>
+            <h2 class="logo-font text-green-400">Bunny Hop</h2>
+            <div id="hop-score" class="text-2xl font-black text-green-400">0</div>
+        </div>
+        <div class="max-w-md mx-auto relative">
+            <canvas id="hop-canvas" width="400" height="600" class="w-full border-4 border-green-500/20"></canvas>
+            <div id="hop-ui" class="absolute inset-0 flex items-center justify-center bg-black/60 rounded-xl">
+                <button onclick="startHop()" class="bg-green-500 text-black px-8 py-4 rounded-full font-black text-xl hover:scale-110 transition-transform">START HOPPING</button>
+            </div>
+        </div>
+    </section>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+
+        // Setup common config
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "", // Ensure this is filled or provided by env
+            authDomain: "gamehub-rohansweb.firebaseapp.com",
+            projectId: "gamehub-rohansweb",
+            storageBucket: "gamehub-rohansweb.firebasestorage.app",
+            messagingSenderId: "607124730463",
+            appId: ""
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+        
+        provider.setCustomParameters({
+            'client_id': '607124730463-rourlv2ariaqrji9cded64pk0otujkca.apps.googleusercontent.com'
         });
+
+        window.handleGoogleLogin = async () => {
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                console.error("Login Error:", error);
+                
+                // Detailed handling for unauthorized domain
+                if (error.code === 'auth/unauthorized-domain') {
+                    const domainBox = document.getElementById('auth-error-msg');
+                    const domainCode = document.getElementById('current-domain-code');
+                    domainCode.innerText = window.location.hostname;
+                    domainBox.classList.remove('hidden');
+                } else if(error.code === 'auth/popup-blocked') {
+                    alert("Please allow popups to sign in with Google.");
+                }
+            }
+        };
+
+        window.handleLogout = () => signOut(auth);
+
+        onAuthStateChanged(auth, (user) => {
+            const btnLogin = document.getElementById('btn-login');
+            const userInfo = document.getElementById('user-info');
+            const userName = document.getElementById('user-name');
+            const authSection = document.getElementById('auth-section');
+
+            authSection.classList.remove('hidden');
+
+            if (user) {
+                btnLogin.classList.add('hidden');
+                userInfo.classList.remove('hidden');
+                userName.innerText = user.displayName || user.email.split('@')[0];
+            } else {
+                btnLogin.classList.remove('hidden');
+                userInfo.classList.add('hidden');
+            }
+        });
+    </script>
+
+    <script>
+        // --- GLOBAL STATE ---
+        let totalEggs = parseInt(localStorage.getItem('rohan_total_eggs') || 0);
+        function updateEggDisplay() {
+            const display = document.getElementById('total-eggs-display');
+            if(display) display.innerText = `🥚 ${totalEggs}`;
+        }
+        updateEggDisplay();
+
+        function addEggs(amt) {
+            totalEggs += amt;
+            localStorage.setItem('rohan_total_eggs', totalEggs);
+            updateEggDisplay();
+        }
+
+        function showView(viewId) {
+            ['hub', 'scrumble', 'hop', 'blocks'].forEach(v => {
+                const el = document.getElementById('view-'+v);
+                if(el) el.classList.add('hidden');
+            });
+            const target = document.getElementById('view-' + viewId);
+            if(target) target.classList.remove('hidden');
+            stopAllGames();
+        }
+
+        function stopAllGames() {
+            scrumbleActive = false;
+            hopActive = false;
+            blocksActive = false;
+        }
+
+        // --- GAME: BLOCK BUILD ---
+        let blocksActive = false, blocksScore = 0;
+        const bCanvas = document.getElementById('blocks-canvas');
+        const bCtx = bCanvas.getContext('2d');
+        let currentBlock = { x: 0, w: 100, speed: 3 };
+        let tower = [{ x: 100, w: 200, y: 580 }];
+
+        function startBlocks() {
+            blocksActive = true; blocksScore = 0;
+            tower = [{ x: 100, w: 200, y: 580 }];
+            currentBlock = { x: 0, w: 200, speed: 3 };
+            document.getElementById('blocks-score').innerText = "0";
+            document.getElementById('blocks-ui').classList.add('hidden');
+            requestAnimationFrame(blocksLoop);
+        }
+
+        function blocksLoop() {
+            if (!blocksActive) return;
+            bCtx.clearRect(0, 0, 400, 600);
+            tower.forEach((b, i) => {
+                bCtx.fillStyle = `hsl(${200 + i * 10}, 70%, 50%)`;
+                bCtx.fillRect(b.x, b.y, b.w, 30);
+                bCtx.fillStyle = 'rgba(0,0,0,0.2)';
+                bCtx.fillRect(b.x, b.y + 25, b.w, 5);
+            });
+            currentBlock.x += currentBlock.speed;
+            if (currentBlock.x + currentBlock.w > 400 || currentBlock.x < 0) currentBlock.speed *= -1;
+            bCtx.fillStyle = '#3b82f6';
+            bCtx.fillRect(currentBlock.x, tower[tower.length-1].y - 30, currentBlock.w, 30);
+            requestAnimationFrame(blocksLoop);
+        }
+
+        bCanvas.onmousedown = () => {
+            if (!blocksActive) return;
+            const top = tower[tower.length - 1];
+            const overlapX = Math.max(currentBlock.x, top.x);
+            const overlapW = Math.min(currentBlock.x + currentBlock.w, top.x + top.w) - overlapX;
+            if (overlapW > 0) {
+                tower.push({ x: overlapX, w: overlapW, y: top.y - 30 });
+                currentBlock.w = overlapW;
+                blocksScore++;
+                document.getElementById('blocks-score').innerText = blocksScore;
+                addEggs(10);
+                if (tower.length > 10) tower.forEach(b => b.y += 30);
+            } else {
+                blocksActive = false;
+                document.getElementById('blocks-ui').classList.remove('hidden');
+            }
+        };
+
+        // --- GAME: EGG SCRUMBLE ---
+        let scrumbleActive = false, scrumbleScore = 0;
+        const sCanvas = document.getElementById('scrumble-canvas');
+        const sCtx = sCanvas.getContext('2d');
+        let currentEgg = { x: 200, y: 50, w: 40, h: 50, speed: 4 };
+        let stack = [{ x: 150, y: 550, w: 100, h: 20 }];
+
+        function startScrumble() {
+            scrumbleActive = true; scrumbleScore = 0; stack = [{ x: 100, y: 580, w: 200, h: 20 }];
+            document.getElementById('scrumble-score').innerText = "0";
+            document.getElementById('scrumble-ui').classList.add('hidden');
+            requestAnimationFrame(scrumbleLoop);
+        }
+
+        function scrumbleLoop() {
+            if (!scrumbleActive) return;
+            sCtx.clearRect(0,0,400,600);
+            sCtx.fillStyle = '#fbbf24';
+            stack.forEach(b => sCtx.fillRect(b.x, b.y, b.w, b.h));
+            currentEgg.x += currentEgg.speed;
+            if (currentEgg.x > 400 - currentEgg.w || currentEgg.x < 0) currentEgg.speed *= -1;
+            sCtx.font = "40px Arial";
+            sCtx.fillText("🥚", currentEgg.x, currentEgg.y + 40);
+            requestAnimationFrame(scrumbleLoop);
+        }
+
+        sCanvas.onmousedown = () => {
+            if (!scrumbleActive) return;
+            const prev = stack[stack.length-1];
+            if (currentEgg.x + currentEgg.w > prev.x && currentEgg.x < prev.x + prev.w) {
+                const newX = Math.max(currentEgg.x, prev.x);
+                const newW = Math.min(currentEgg.x + currentEgg.w, prev.x + prev.w) - newX;
+                stack.push({ x: newX, y: prev.y - 40, w: newW, h: 40 });
+                scrumbleScore += 50;
+                document.getElementById('scrumble-score').innerText = scrumbleScore;
+                addEggs(5);
+                currentEgg.y = Math.max(50, prev.y - 200);
+                currentEgg.w = newW;
+            } else {
+                scrumbleActive = false;
+                document.getElementById('scrumble-ui').classList.remove('hidden');
+            }
+        };
+
+        // --- GAME: BUNNY HOP ---
+        let hopActive = false, hopScore = 0;
+        const hCanvas = document.getElementById('hop-canvas');
+        const hCtx = hCanvas.getContext('2d');
+        let bunny = { x: 200, y: 500, vy: 0, size: 30 };
+        let platforms = [];
+
+        function startHop() {
+            hopActive = true; hopScore = 0;
+            bunny = { x: 200, y: 500, vy: 0, size: 30 };
+            platforms = [];
+            for(let i=0; i<6; i++) platforms.push({ x: Math.random()*300, y: i*100, w: 80 });
+            document.getElementById('hop-score').innerText = "0";
+            document.getElementById('hop-ui').classList.add('hidden');
+            requestAnimationFrame(hopLoop);
+        }
+
+        function hopLoop() {
+            if (!hopActive) return;
+            hCtx.clearRect(0,0,400,600);
+            bunny.vy += 0.4;
+            bunny.y += bunny.vy;
+            platforms.forEach(p => {
+                hCtx.fillStyle = '#4ade80';
+                hCtx.fillRect(p.x, p.y, p.w, 10);
+                if (bunny.vy > 0 && bunny.y + bunny.size > p.y && bunny.y < p.y + 10 && bunny.x + bunny.size > p.x && bunny.x < p.x + p.w) {
+                    bunny.vy = -12;
+                    hopScore += 10;
+                    document.getElementById('hop-score').innerText = hopScore;
+                    addEggs(1);
+                }
+                if (bunny.y < 300) {
+                    const diff = 300 - bunny.y;
+                    bunny.y = 300;
+                    p.y += diff;
+                    if (p.y > 600) { p.y = 0; p.x = Math.random()*320; }
+                }
+            });
+            hCtx.font = "30px Arial";
+            hCtx.fillText("🐰", bunny.x, bunny.y);
+            if (bunny.y > 600) { hopActive = false; document.getElementById('hop-ui').classList.remove('hidden'); }
+            requestAnimationFrame(hopLoop);
+        }
+
+        window.onkeydown = (e) => {
+            if (e.key === 'ArrowLeft') bunny.x -= 20;
+            if (e.key === 'ArrowRight') bunny.x += 20;
+        };
     </script>
 </body>
 </html>
