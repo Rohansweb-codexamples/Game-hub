@@ -216,6 +216,19 @@
                 </div>
             </div>
 
+            <!-- Ultimate Challenge -->
+            <div onclick="showView('ultimate')" class="hub-card glass-panel p-6 border-yellow-400/30 group">
+                <div class="h-40 rounded-xl bg-gradient-to-br from-yellow-500 to-red-700 mb-4 flex items-center justify-center">
+                    <span class="text-6xl group-hover:scale-125 transition-transform">⚔️</span>
+                </div>
+                <h3 class="logo-font text-xl mb-1 text-yellow-400">ULTIMATE CHALLENGE</h3>
+                <p class="text-xs text-slate-400 mb-4">3D two-player versus battle!</p>
+                <div class="flex justify-between items-center">
+                    <span class="px-2 py-1 rounded bg-yellow-500/20 text-yellow-400 text-[10px] font-black uppercase">2 Player</span>
+                    <span class="text-xs font-black text-yellow-400">PLAY →</span>
+                </div>
+            </div>
+
             <!-- Studio Beats -->
             <a href="https://gamehub.rohansweb.co.uk/StudioBeats" target="_blank" class="hub-card glass-panel p-6 border-blue-400/30 group block">
                 <div class="h-40 rounded-xl bg-gradient-to-br from-blue-600 to-purple-700 mb-4 flex items-center justify-center">
@@ -374,6 +387,16 @@
         </div>
     </section>
 
+    <!-- MINIGAME: ULTIMATE CHALLENGE -->
+    <section id="view-ultimate" class="hidden">
+        <div class="w-full flex justify-between items-center glass-panel px-6 py-3 mb-2 max-w-5xl mx-auto">
+            <span class="text-yellow-400 font-black">ULTIMATE CHALLENGE</span>
+            <span class="text-xs text-slate-400">2-Player Versus</span>
+            <button onclick="showView('hub')" class="bg-white/10 px-3 py-1 rounded text-xs font-black">EXIT</button>
+        </div>
+        <iframe src="UltimateChallenge.html" class="w-full" style="height: calc(100vh - 120px); border: none;"></iframe>
+    </section>
+
     <script>
         // GOOGLE CONFIG
         const GOOGLE_CLIENT_ID = "607124730463-rourlv2ariaqrji9cded64pk0otujkca.apps.googleusercontent.com";
@@ -522,7 +545,7 @@
 
         function showView(viewId) {
             stopAllGames();
-            ['hub', 'login', 'signup', 'account', 'avatar', 'catch', 'blockblast', 'dash', 'race'].forEach(v => {
+            ['hub', 'login', 'signup', 'account', 'avatar', 'catch', 'blockblast', 'dash', 'race', 'ultimate'].forEach(v => {
                 const el = document.getElementById('view-' + v);
                 if (el) el.classList.add('hidden');
             });
