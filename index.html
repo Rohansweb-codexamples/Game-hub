@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rohan's Arcade Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Bungee+Spice&family=Bungee&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -398,10 +399,16 @@
     </section>
 
     <script>
-        let user = null;
+        const SUPABASE_URL = "https://fwhxllmhgnxqfjduohcq.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3aHhsbG1oZ254cWZqZHVvaGNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1MzM2NjMsImV4cCI6MjEwNDEwOTY2M30.UxqrWjUmCAkOZ7P5P9Onu1xBlLpHZizg_o1qlVK36wI";
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let profile = null;
         let totalEggs = 0;
         let selectedPetImg = "";
         let selectedPetName = "";
+        let eggSyncTimer = null;
+        let pendingEggDelta = 0;
 
         const fruitOptions = [
             { name: "Spotty Bobby", id: 4 }, { name: "Zesty Zack", id: 5 },
@@ -419,64 +426,64 @@
         };
 
         // --- AUTH LOGIC ---
-        function handleLogin() {
-            const email = document.getElementById('login-email').value;
+        async function handleLogin() {
+            const email = document.getElementById('login-email').value.trim();
             const pass = document.getElementById('login-password').value;
             if(!email || !pass) return;
-            
-            const saved = localStorage.getItem(`user_${email}`);
-            if(saved) {
-                const userData = JSON.parse(saved);
-                // Simple password check (In a real app, this is handled server-side)
-                if(userData.password && userData.password !== pass) {
-                    alert("Incorrect password!");
-                    return;
-                }
-                loginSession(userData);
-            } else {
-                // Auto-create if not found (Demo behavior)
-                const userData = { id: Date.now(), username: email.split('@')[0], email, password: pass, avatar: `download%20(4).png`, petType: 'Companion', eggs: 0 };
-                loginSession(userData);
-            }
-            showView('hub');
+            const btn = document.getElementById('btn-login');
+            btn.textContent = 'Loading...'; btn.disabled = true;
+            const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
+            btn.textContent = 'ENTER ARCADE'; btn.disabled = false;
+            if(error) { alert(error.message); return; }
         }
 
-        function handleSignup() {
-            const userIn = document.getElementById('signup-user').value;
-            const emailIn = document.getElementById('signup-email').value;
+        async function handleSignup() {
+            const userIn = document.getElementById('signup-user').value.trim();
+            const emailIn = document.getElementById('signup-email').value.trim();
             const passIn = document.getElementById('signup-password').value;
             if(!userIn || !emailIn || !passIn) return;
-            
-            loginSession({ 
-                id: Date.now(), 
-                username: userIn, 
-                email: emailIn, 
-                password: passIn,
-                avatar: `download%20(4).png`, 
-                petType: 'Companion', 
-                eggs: 0 
+            const btn = document.getElementById('btn-signup');
+            btn.textContent = 'Loading...'; btn.disabled = true;
+            const { data, error } = await supabase.auth.signUp({
+                email: emailIn, password: passIn,
+                options: { data: { username: userIn } }
             });
-            showView('hub');
+            btn.textContent = 'START ADVENTURE'; btn.disabled = false;
+            if(error) { alert(error.message); return; }
+            if(data.user && !data.session) {
+                alert('Account created! Please log in.');
+                showView('login');
+            }
         }
 
-        function loginSession(userData) {
-            user = userData;
-            totalEggs = user.eggs || 0;
-            saveUserData();
+        async function loadProfile(authUser) {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('username, avatar, pet_type, eggs')
+                .eq('id', authUser.id)
+                .maybeSingle();
+            if(error) { console.error('Profile load error:', error.message); return; }
+            if(data) {
+                profile = { id: authUser.id, email: authUser.email, username: data.username, avatar: data.avatar, petType: data.pet_type, eggs: data.eggs };
+            } else {
+                const username = authUser.user_metadata?.username || authUser.email.split('@')[0];
+                const newProfile = { id: authUser.id, username, avatar: 'download%20(4).png', pet_type: 'Companion', eggs: 0 };
+                const { error: insErr } = await supabase.from('profiles').insert(newProfile);
+                if(insErr) { console.error('Profile create error:', insErr.message); return; }
+                profile = { id: authUser.id, email: authUser.email, username, avatar: newProfile.avatar, petType: newProfile.pet_type, eggs: 0 };
+            }
+            totalEggs = profile.eggs || 0;
             updateUI();
         }
 
-        function logout() {
-            localStorage.removeItem('arcade_session');
-            user = null; totalEggs = 0;
-            updateUI(); showView('hub');
+        async function logout() {
+            await supabase.auth.signOut();
         }
 
-        function saveUserData() {
-            if(user) {
-                localStorage.setItem('arcade_session', JSON.stringify(user));
-                localStorage.setItem(`user_${user.email}`, JSON.stringify(user));
-            }
+        function saveProfileField(fields) {
+            if(!profile) return;
+            supabase.from('profiles').update(fields).eq('id', profile.id)
+                .then(({ error }) => { if(error) console.error('Save error:', error.message); });
         }
 
         // --- UI CORE ---
@@ -512,7 +519,7 @@
             fruitOptions.forEach(fruit => {
                 const imgUrl = `download%20(${fruit.id}).png`;
                 const div = document.createElement('div');
-                div.className = "avatar-option glass-panel p-4 flex flex-col items-center gap-2" + (user && user.avatar === imgUrl ? " selected" : "");
+                div.className = "avatar-option glass-panel p-4 flex flex-col items-center gap-2" + (profile && profile.avatar === imgUrl ? " selected" : "");
                 div.onclick = () => selectFruit(imgUrl, fruit.name, div);
                 div.innerHTML = `<img src="${imgUrl}" class="w-24 h-24 rounded-xl object-contain p-1 pointer-events-none"><span class="logo-font text-[10px] text-white opacity-80">${fruit.name}</span>`;
                 grid.appendChild(div);
@@ -527,28 +534,28 @@
         }
 
         function saveAvatar() {
-            if(!selectedPetImg || !user) return;
-            user.avatar = selectedPetImg;
-            user.petType = selectedPetName;
-            saveUserData();
+            if(!selectedPetImg || !profile) return;
+            profile.avatar = selectedPetImg;
+            profile.petType = selectedPetName;
+            saveProfileField({ avatar: selectedPetImg, pet_type: selectedPetName });
             updateUI();
             showView('account');
         }
 
         function updateUI() {
-            if(user) {
+            if(profile) {
                 document.getElementById('guest-nav').classList.add('hidden');
                 document.getElementById('user-nav').classList.remove('hidden');
-                document.getElementById('nav-username').innerText = user.username;
-                document.getElementById('nav-avatar').src = user.avatar;
+                document.getElementById('nav-username').innerText = profile.username;
+                document.getElementById('nav-avatar').src = profile.avatar;
                 document.getElementById('nav-eggs').innerText = `🥚 ${totalEggs}`;
-                document.getElementById('acc-username').innerText = user.username;
-                document.getElementById('acc-email').innerText = user.email;
-                document.getElementById('acc-avatar').src = user.avatar;
+                document.getElementById('acc-username').innerText = profile.username;
+                document.getElementById('acc-email').innerText = profile.email;
+                document.getElementById('acc-avatar').src = profile.avatar;
                 document.getElementById('acc-eggs').innerText = totalEggs;
                 const level = Math.floor(totalEggs / 100) + 1;
                 document.getElementById('acc-level').innerText = level;
-                document.getElementById('pet-status').innerText = `${user.petType} - Level ${level}`;
+                document.getElementById('pet-status').innerText = `${profile.petType} - Level ${level}`;
             } else {
                 document.getElementById('guest-nav').classList.remove('hidden');
                 document.getElementById('user-nav').classList.add('hidden');
@@ -556,17 +563,36 @@
         }
 
         function addScore(amt) {
-            if(!user) {
+            if(!profile) {
                 const warning = document.getElementById('login-warning');
                 warning.style.display = 'block';
                 setTimeout(() => warning.style.display = 'none', 3000);
                 return;
             }
             totalEggs += amt;
-            user.eggs = totalEggs;
-            saveUserData();
+            profile.eggs = totalEggs;
             updateUI();
+            pendingEggDelta += amt;
+            if(eggSyncTimer) clearTimeout(eggSyncTimer);
+            eggSyncTimer = setTimeout(() => {
+                saveProfileField({ eggs: totalEggs });
+                pendingEggDelta = 0;
+            }, 2000);
         }
+
+        // --- AUTH STATE ---
+        supabase.auth.onAuthStateChange((event, session) => {
+            (async () => {
+                if(session) {
+                    await loadProfile(session.user);
+                    showView('hub');
+                } else {
+                    profile = null; totalEggs = 0;
+                    updateUI();
+                    showView('hub');
+                }
+            })();
+        });
 
         // --- BLOCK BLAST ---
         let blastActive = false;
@@ -735,9 +761,9 @@
             });
         }
 
-        window.onload = () => {
-            const saved = localStorage.getItem('arcade_session');
-            if(saved) loginSession(JSON.parse(saved));
+        window.onload = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if(!session) { showView('hub'); }
         };
     </script>
 </body>
