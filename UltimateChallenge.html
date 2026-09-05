@@ -13,12 +13,13 @@
         .spice-font { font-family: 'Bungee Spice', cursive; }
         .logo-font { font-family: 'Bungee', cursive; }
 
-        #overlay { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; pointer-events: none; padding: 20px; }
+        #overlay { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; pointer-events: none; }
         .interactive { pointer-events: auto; }
 
         .boom-text {
             font-family: 'Bungee Spice', cursive;
-            text-align: center; line-height: 1.05;
+            text-align: center;
+            line-height: 1.05;
             text-shadow: 0 0 40px rgba(244,114,182,0.5), 0 8px 0 rgba(0,0,0,0.4);
             animation: boomIn 0.5s cubic-bezier(0.18,0.89,0.32,1.28);
         }
@@ -26,117 +27,65 @@
         @keyframes pulseGlow { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
         .pulse { animation: pulseGlow 0.6s ease-in-out infinite; }
 
-        /* Neon countdown */
-        .neon-num {
-            font-family: 'Bungee Spice', cursive;
-            font-size: 20rem; line-height: 1;
-            animation: neonPulse 1s ease-in-out, boomIn 0.3s cubic-bezier(0.18,0.89,0.32,1.28);
-        }
-        .neon-3 { color: #ef4444; text-shadow: 0 0 20px #ef4444, 0 0 60px #ef4444, 0 0 100px rgba(239,68,68,0.5); }
-        .neon-2 { color: #fbbf24; text-shadow: 0 0 20px #fbbf24, 0 0 60px #fbbf24, 0 0 100px rgba(251,191,36,0.5); }
-        .neon-1 { color: #10b981; text-shadow: 0 0 20px #10b981, 0 0 60px #10b981, 0 0 100px rgba(16,185,129,0.5); }
-        @keyframes neonPulse { 0%,100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.15); filter: brightness(1.4); } }
-
-        .hud-top { position: fixed; top: 0; left: 0; right: 0; z-index: 40; display: flex; justify-content: space-between; padding: 12px 20px; align-items: center; }
-        .player-badge { background: rgba(15,23,42,0.8); backdrop-filter: blur(10px); border-radius: 18px; padding: 8px 14px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px; }
+        .hud-top { position: fixed; top: 0; left: 0; right: 0; z-index: 40; display: flex; justify-content: space-between; padding: 16px 24px; }
+        .player-badge { background: rgba(15,23,42,0.8); backdrop-filter: blur(10px); border-radius: 18px; padding: 10px 18px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 12px; }
+        .pip { width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); }
+        .pip.on { box-shadow: 0 0 12px currentColor; }
         .p1-color { color: #38bdf8; }
         .p2-color { color: #f472b6; }
-        .player-badge .picon { font-size: 28px; }
-        .player-badge .pname { font-family: 'Bungee', cursive; font-size: 14px; }
-        .star-pip { width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; }
-        .star-pip.lit { filter: drop-shadow(0 0 6px currentColor); }
 
         #minigame-panel {
             position: fixed; inset: 0; z-index: 60;
             display: flex; align-items: center; justify-content: center;
-            background: rgba(2,6,23,0.6); backdrop-filter: blur(8px);
+            background: rgba(2,6,23,0.55); backdrop-filter: blur(8px);
             opacity: 0; pointer-events: none; transition: opacity 0.3s;
-            padding: 20px;
         }
         #minigame-panel.show { opacity: 1; pointer-events: auto; }
-        .mg-card { background: #0f172a; border-radius: 28px; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 30px 80px rgba(0,0,0,0.6); padding: 28px; width: min(700px, 94vw); max-height: 90vh; overflow-y: auto; text-align: center; }
-        .mg-card-wide { width: min(900px, 94vw); }
 
-        .key-cap { display: inline-flex; align-items: center; justify-content: center; min-width: 36px; height: 36px; padding: 0 8px; border-radius: 8px; background: #1e293b; border: 2px solid #334155; font-family: 'Bungee', cursive; font-size: 14px; box-shadow: 0 3px 0 #0b1220; }
+        .mg-card { background: #0f172a; border-radius: 28px; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 30px 80px rgba(0,0,0,0.6); padding: 32px; width: min(640px, 92vw); text-align: center; }
 
-        .btn-primary { background: #db2777; color: white; font-family: 'Bungee', cursive; padding: 14px 32px; border-radius: 16px; border-bottom: 4px solid #831843; box-shadow: 0 10px 30px rgba(219,39,119,0.3); transition: all 0.15s; cursor: pointer; }
+        .key-cap { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; height: 44px; padding: 0 10px; border-radius: 10px; background: #1e293b; border: 2px solid #334155; font-family: 'Bungee', cursive; font-size: 18px; box-shadow: 0 4px 0 #0b1220; }
+        .key-cap.active { background: currentColor; color: #020617 !important; transform: translateY(3px); box-shadow: 0 1px 0 #0b1220; }
+
+        .tug-bar { height: 28px; border-radius: 14px; overflow: hidden; display: flex; }
+        .tug-fill-p1 { background: linear-gradient(90deg,#0ea5e9,#38bdf8); transition: flex 0.05s linear; }
+        .tug-fill-p2 { background: linear-gradient(90deg,#f472b6,#db2777); transition: flex 0.05s linear; }
+
+        .btn-primary { background: #db2777; color: white; font-family: 'Bungee', cursive; padding: 16px 36px; border-radius: 16px; border-bottom: 4px solid #831843; box-shadow: 0 10px 30px rgba(219,39,119,0.3); transition: all 0.15s; }
         .btn-primary:hover { transform: translateY(-2px); }
         .btn-primary:active { transform: translateY(2px); border-bottom-width: 1px; }
-        .btn-secondary { background: #1e293b; color: #cbd5e1; font-family: 'Bungee', cursive; padding: 10px 24px; border-radius: 12px; border: 1px solid #334155; cursor: pointer; transition: all 0.15s; }
-        .btn-secondary:hover { background: #334155; color: white; }
 
-        .input-field { background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1); padding: 10px 16px; border-radius: 12px; color: white; outline: none; font-size: 16px; font-weight: 700; transition: border-color 0.2s; }
-        .input-field:focus { border-color: #f472b6; }
+        .countdown-num { font-family: 'Bungee Spice', cursive; font-size: 16rem; line-height: 1; text-shadow: 0 0 60px rgba(251,191,36,0.6); }
 
-        .avatar-option { cursor: pointer; border: 3px solid transparent; transition: all 0.2s; border-radius: 16px; padding: 8px; background: rgba(255,255,255,0.03); }
-        .avatar-option.selected { border-color: currentColor; transform: scale(1.08); background: rgba(255,255,255,0.08); }
-        .avatar-option img { width: 64px; height: 64px; border-radius: 12px; object-fit: cover; }
-
-        /* Tic Tac Toe */
-        .ttt-cell { width: 80px; height: 80px; border: 2px solid #334155; display: flex; align-items: center; justify-content: center; font-size: 48px; font-family: 'Bungee', cursive; cursor: pointer; transition: background 0.2s; }
-        .ttt-cell:hover { background: rgba(255,255,255,0.05); }
-        .ttt-cell.disabled { cursor: default; }
-
-        /* Dots and boxes */
-        .dot-board { display: grid; gap: 0; }
-        .dot-cell { display: flex; align-items: center; justify-content: center; position: relative; }
-        .dot { width: 12px; height: 12px; background: #64748b; border-radius: 50%; z-index: 2; }
-        .h-line { width: 40px; height: 8px; background: transparent; cursor: pointer; border-radius: 4px; transition: background 0.15s; }
-        .h-line:hover { background: rgba(255,255,255,0.1); }
-        .h-line.drawn { background: currentColor; cursor: default; }
-        .v-line { width: 8px; height: 40px; background: transparent; cursor: pointer; border-radius: 4px; transition: background 0.15s; }
-        .v-line:hover { background: rgba(255,255,255,0.1); }
-        .v-line.drawn { background: currentColor; cursor: default; }
-        .box-fill { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-family: 'Bungee', cursive; }
-
-        /* Hangman */
-        .hangman-letter { display: inline-flex; width: 32px; height: 40px; border-bottom: 3px solid #475569; margin: 0 3px; align-items: flex-end; justify-content: center; font-size: 26px; font-family: 'Bungee', cursive; }
-        .key-btn { display: inline-flex; width: 36px; height: 36px; align-items: center; justify-content: center; border-radius: 8px; background: #1e293b; border: 1px solid #334155; font-family: 'Bungee', cursive; cursor: pointer; transition: all 0.15s; font-size: 14px; }
-        .key-btn:hover:not(:disabled) { background: #334155; }
-        .key-btn:disabled { opacity: 0.3; cursor: default; }
-        .key-btn.correct { background: #10b981; color: white; border-color: #10b981; }
-        .key-btn.wrong { background: #ef4444; color: white; border-color: #ef4444; }
-
-        .floating-score { position: absolute; animation: floatUp 0.8s ease-out forwards; font-weight: 900; font-size: 1.5rem; pointer-events: none; z-index: 100; }
-        @keyframes floatUp { from { transform: translateY(0) scale(0.5); opacity: 1; } to { transform: translateY(-60px) scale(1.2); opacity: 0; } }
-
-        .music-btn { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 45; background: rgba(15,23,42,0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; }
+        .result-banner { font-family: 'Bungee', cursive; font-size: 3rem; }
     </style>
 </head>
 <body>
 
 <canvas id="arena"></canvas>
 
-<div id="hud" class="hud-top hidden">
-    <div class="player-badge p1-color" id="hud-p1">
-        <span class="picon" id="hud-p1-icon">🦸</span>
-        <span class="pname" id="hud-p1-name">P1</span>
-        <span class="star-pip" id="star1-0">☆</span>
-        <span class="star-pip" id="star1-1">☆</span>
-        <span class="star-pip" id="star1-2">☆</span>
-        <span class="star-pip" id="star1-3">☆</span>
+<div class="hud-top">
+    <div class="player-badge p1-color">
+        <span class="logo-font text-lg">P1</span>
+        <span class="pip on" style="background:#38bdf8" id="pip1-1"></span>
+        <span class="pip on" style="background:#38bdf8" id="pip1-2"></span>
     </div>
-    <div class="spice-font text-sm md:text-lg text-white opacity-70" id="hud-title">ULTIMATE CHALLENGE</div>
-    <div class="player-badge p2-color" id="hud-p2" style="flex-direction: row-reverse">
-        <span class="picon" id="hud-p2-icon">🦸‍♀️</span>
-        <span class="pname" id="hud-p2-name">P2</span>
-        <span class="star-pip" id="star2-0">☆</span>
-        <span class="star-pip" id="star2-1">☆</span>
-        <span class="star-pip" id="star2-2">☆</span>
-        <span class="star-pip" id="star2-3">☆</span>
+    <div class="spice-font text-xl md:text-2xl text-white opacity-70">ULTIMATE CHALLENGE</div>
+    <div class="player-badge p2-color" style="flex-direction: row-reverse">
+        <span class="logo-font text-lg">P2</span>
+        <span class="pip on" style="background:#f472b6" id="pip2-1"></span>
+        <span class="pip on" style="background:#f472b6" id="pip2-2"></span>
     </div>
 </div>
-
-<button class="music-btn interactive hidden" id="music-btn" onclick="toggleMusic()">🎵</button>
 
 <div id="overlay"></div>
 
 <div id="minigame-panel">
-    <div class="mg-card" id="mg-card-inner">
+    <div class="mg-card">
         <div id="mg-title" class="spice-font text-3xl text-pink-400 mb-2">GAME</div>
-        <div id="mg-instr" class="text-slate-300 text-sm mb-5"></div>
+        <div id="mg-instr" class="text-slate-300 text-sm mb-6"></div>
         <div id="mg-body"></div>
-        <div id="mg-status" class="logo-font text-2xl mt-5 opacity-0"></div>
+        <div id="mg-status" class="logo-font text-2xl mt-6 opacity-0"></div>
     </div>
 </div>
 
@@ -163,16 +112,20 @@ function initArena() {
     const pl1 = new THREE.PointLight(0x38bdf8, 1.5, 30); pl1.position.set(-6, 4, 2); scene.add(pl1);
     const pl2 = new THREE.PointLight(0xf472b6, 1.5, 30); pl2.position.set(6, 4, 2); scene.add(pl2);
 
+    // Floor
     const floor = new THREE.Mesh(new THREE.CircleGeometry(18, 64), new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.7, metalness: 0.2 }));
     floor.rotation.x = -Math.PI/2; floor.receiveShadow = true; scene.add(floor);
 
+    // Glowing ring
     ring = new THREE.Mesh(new THREE.TorusGeometry(7, 0.15, 16, 80), new THREE.MeshStandardMaterial({ color: 0xfbbf24, emissive: 0xfbbf24, emissiveIntensity: 0.8 }));
     ring.rotation.x = -Math.PI/2; ring.position.y = 0.05; scene.add(ring);
 
+    // Two contenders (capsule-ish)
     p1Mesh = makeFighter(0x38bdf8, -5);
     p2Mesh = makeFighter(0xf472b6, 5);
     scene.add(p1Mesh, p2Mesh);
 
+    // Stars
     const sg = new THREE.SphereGeometry(0.08, 6, 6);
     const sm = new THREE.MeshBasicMaterial({ color: 0xffffff });
     for (let i = 0; i < 200; i++) {
@@ -195,7 +148,7 @@ function makeFighter(color, x) {
     const eye = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 12), new THREE.MeshBasicMaterial({ color: 0xffffff }));
     eye.position.set(0, 1.7, 0.6); g.add(eye);
     g.position.set(x, 0, 0);
-    g.userData = { body };
+    g.userData = { baseY: 0, body };
     return g;
 }
 
@@ -213,689 +166,268 @@ function animateArena() {
     renderer.render(scene, camera);
 }
 
-// ===== BACKGROUND MUSIC =====
-let musicCtx = null, musicPlaying = false, musicNodes = [];
-function startMusic() {
-    if (musicPlaying) return;
-    if (!musicCtx) musicCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (musicCtx.state === 'suspended') musicCtx.resume();
-    musicPlaying = true;
-
-    const bpm = 128; const beatLen = 60 / bpm;
-    const master = musicCtx.createGain(); master.gain.value = 0.15;
-    master.connect(musicCtx.destination);
-    musicNodes.push(master);
-
-    function kick(time) {
-        const o = musicCtx.createOscillator(); const g = musicCtx.createGain();
-        o.frequency.setValueAtTime(140, time); o.frequency.exponentialRampToValueAtTime(0.001, time + 0.4);
-        g.gain.setValueAtTime(0.8, time); g.gain.exponentialRampToValueAtTime(0.001, time + 0.4);
-        o.connect(g); g.connect(master); o.start(time); o.stop(time + 0.4);
-    }
-    function bass(time, freq) {
-        const o = musicCtx.createOscillator(); const g = musicCtx.createGain();
-        o.type = 'sawtooth'; o.frequency.value = freq;
-        const f = musicCtx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 400;
-        g.gain.setValueAtTime(0.25, time); g.gain.exponentialRampToValueAtTime(0.001, time + beatLen * 0.8);
-        o.connect(f); f.connect(g); g.connect(master); o.start(time); o.stop(time + beatLen);
-    }
-    function lead(time, freq) {
-        const o = musicCtx.createOscillator(); const g = musicCtx.createGain();
-        o.type = 'square'; o.frequency.value = freq;
-        g.gain.setValueAtTime(0.08, time); g.gain.exponentialRampToValueAtTime(0.001, time + 0.15);
-        o.connect(g); g.connect(master); o.start(time); o.stop(time + 0.15);
-    }
-
-    const bassNotes = [110, 110, 87.3, 130.8];
-    const leadNotes = [440, 523, 659, 587, 440, 523, 698, 659];
-    let beatCount = 0;
-    const startTime = musicCtx.currentTime + 0.1;
-
-    function scheduleLoop() {
-        if (!musicPlaying) return;
-        const now = musicCtx.currentTime;
-        while (now + 0.5 > beatCount * beatLen + startTime) {
-            const t = beatCount * beatLen + startTime;
-            if (beatCount % 4 === 0) kick(t);
-            if (beatCount % 8 === 4) kick(t);
-            if (beatCount % 2 === 0) bass(t, bassNotes[Math.floor(beatCount / 8) % 4]);
-            lead(t, leadNotes[beatCount % leadNotes.length] * 2);
-            beatCount++;
-        }
-        setTimeout(scheduleLoop, 100);
-    }
-    scheduleLoop();
-    document.getElementById('music-btn').classList.remove('hidden');
-    document.getElementById('music-btn').innerText = '🔊';
-}
-
-function stopMusic() {
-    musicPlaying = false;
-    musicNodes.forEach(n => { try { n.disconnect(); } catch(e){} });
-    musicNodes = [];
-    const btn = document.getElementById('music-btn');
-    if (btn) btn.innerText = '🔇';
-}
-
-function toggleMusic() {
-    if (musicPlaying) stopMusic();
-    else startMusic();
-}
-
 // ===== BOOMING VOICE =====
-const synth = window.speechSynthesis;
+const voice = window.speechSynthesis;
 let boomVoice = null;
 function loadVoice() {
-    const vs = synth.getVoices();
+    const vs = voice.getVoices();
     boomVoice = vs.find(v => /en-GB|en_US|Google US|male|Daniel|Alex/i.test(v.name + v.lang)) || vs[0];
 }
-if (synth) { loadVoice(); synth.onvoiceschanged = loadVoice; }
+if (voice) { loadVoice(); voice.onvoiceschanged = loadVoice; }
 
 function boom(text, opts = {}) {
     const card = document.getElementById('overlay');
     const el = document.createElement('div');
-    el.className = 'boom-text ' + (opts.size || 'text-6xl md:text-8xl') + ' ' + (opts.color || 'text-yellow-300') + (opts.pulse ? ' pulse' : '');
+    el.className = 'boom-text ' + (opts.size || 'text-6xl md:text-8xl') + ' ' + (opts.color || 'text-yellow-300');
     el.innerText = text;
     card.innerHTML = ''; card.appendChild(el);
-    if (synth && boomVoice) {
+    if (voice && boomVoice) {
         try {
             const u = new SpeechSynthesisUtterance(text.replace(/[^a-zA-Z0-9 ]/g, ''));
             u.voice = boomVoice; u.pitch = opts.pitch || 0.3; u.rate = opts.rate || 0.7; u.volume = 1;
-            synth.cancel(); synth.speak(u);
+            voice.cancel(); voice.speak(u);
         } catch(e) {}
     }
 }
 
-function boomHTML(html) {
-    const card = document.getElementById('overlay');
-    card.innerHTML = html;
-}
-
-// ===== STATE =====
-const AVATARS = ['🦸','🦸‍♀️','🤖','👾','🐉','🦊','🐯','🐲','🦄','🍕','👾','🎃','🐲','🦁','🐺','🦅'];
-
-const GAMES = [
-    { title: 'TIC-TAC-TOE', instr: 'Three in a row wins! Click cells to place your mark.', run: runTicTacToe },
-    { title: 'EGG CATCH', instr: 'Catch falling eggs with your mouse! Most eggs in 20 seconds wins!', run: runEggCatch },
-    { title: 'DOTS & BOXES', instr: 'Click lines to claim boxes. Most boxes wins!', run: runDotsBoxes },
-    { title: 'HANGMAN', instr: 'Guess the hidden word! First to solve wins the round!', run: runHangman }
-];
-
-let p1 = { name: 'Player 1', avatar: '🦸', stars: 0 };
-let p2 = { name: 'Player 2', avatar: '🦸‍♀️', stars: 0 };
-let currentGameIdx = 0;
-
+// ===== GAME FLOW =====
 const overlay = document.getElementById('overlay');
 const panel = document.getElementById('minigame-panel');
 const mgTitle = document.getElementById('mg-title');
 const mgInstr = document.getElementById('mg-instr');
 const mgBody = document.getElementById('mg-body');
 const mgStatus = document.getElementById('mg-status');
-const mgCard = document.getElementById('mg-card-inner');
 
-// ===== HELPERS =====
-function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
-function showStatus(text, color) {
-    mgStatus.innerText = text; mgStatus.style.color = color || '#fff';
-    mgStatus.classList.remove('opacity-0');
-}
-function clearStatus() { mgStatus.classList.add('opacity-0'); }
-function addCleanup(fn) { cleanupFns.push(fn); }
-let cleanupFns = [];
-function cleanupAll() { cleanupFns.forEach(fn => { try { fn(); } catch(e){} }); cleanupFns = []; }
+let p1Wins = 0, p2Wins = 0, roundsPlayed = 0;
+const TARGET = 2; // best of 3
 
-// ===== START SCREEN: AVATAR & NAME ENTRY =====
-function showStartScreen() {
-    document.getElementById('hud').classList.add('hidden');
-    document.getElementById('music-btn').classList.add('hidden');
-    boomHTML(`<div class="interactive text-center max-w-3xl">
-        <div class="boom-text text-4xl md:text-6xl text-yellow-300 mb-2">THE ULTIMATE</div>
-        <div class="boom-text text-5xl md:text-7xl text-pink-400 mb-8">CHALLENGE</div>
-        <div class="text-slate-300 mb-6 text-sm">Two players. Four games. Enter your names and pick your avatars!</div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div class="bg-cyan-500/10 border border-cyan-500/30 rounded-2xl p-5">
-                <div class="p1-color logo-font text-xl mb-3">PLAYER 1</div>
-                <input type="text" id="p1-name" placeholder="Enter name" class="input-field mb-3" maxlength="12">
-                <div id="p1-avatars" class="grid grid-cols-6 gap-2"></div>
-            </div>
-            <div class="bg-pink-500/10 border border-pink-500/30 rounded-2xl p-5">
-                <div class="p2-color logo-font text-xl mb-3">PLAYER 2</div>
-                <input type="text" id="p2-name" placeholder="Enter name" class="input-field mb-3" maxlength="12">
-                <div id="p2-avatars" class="grid grid-cols-6 gap-2"></div>
-            </div>
-        </div>
-        <button class="btn-primary" onclick="beginChallenge()">BEGIN THE CHALLENGE</button>
-    </div>`);
-    buildAvatarPicker('p1-avatars', 1);
-    buildAvatarPicker('p2-avatars', 2);
-}
+const MINIGAMES = [
+    { id: 'mash', title: 'BUTTON MASH', instr: 'Press your key as FAST as you can for 5 seconds!', run: runMash },
+    { id: 'draw', title: 'QUICK DRAW', instr: 'Wait for GO... then press first!', run: runDraw },
+    { id: 'tug', title: 'TUG OF WAR', instr: 'Alternate your two keys to pull the rope!', run: runTug },
+    { id: 'react', title: 'COLOR REACT', instr: 'Press when the panel turns GREEN. Fake-outs possible!', run: runReact }
+];
 
-function buildAvatarPicker(containerId, player) {
-    const container = document.getElementById(containerId);
-    container.innerHTML = '';
-    const color = player === 1 ? '#38bdf8' : '#f472b6';
-    AVATARS.forEach((emoji, i) => {
-        const el = document.createElement('div');
-        el.className = 'avatar-option' + (i === 0 ? ' selected' : '');
-        el.style.color = color;
-        el.style.fontSize = '32px';
-        el.style.display = 'flex';
-        el.style.alignItems = 'center';
-        el.style.justifyContent = 'center';
-        el.innerText = emoji;
-        el.onclick = () => {
-            container.querySelectorAll('.avatar-option').forEach(a => a.classList.remove('selected'));
-            el.classList.add('selected');
-            if (player === 1) p1.avatar = emoji;
-            else p2.avatar = emoji;
-        };
-        container.appendChild(el);
-    });
-}
+function showOverlay(html) { overlay.innerHTML = html; }
+function clearOverlay() { overlay.innerHTML = ''; }
 
-window.beginChallenge = async function() {
-    const n1 = document.getElementById('p1-name').value.trim();
-    const n2 = document.getElementById('p2-name').value.trim();
-    p1.name = n1 || 'Player 1';
-    p2.name = n2 || 'Player 2';
-    p1.stars = 0; p2.stars = 0; currentGameIdx = 0;
-
-    // Show HUD
-    document.getElementById('hud').classList.remove('hidden');
-    document.getElementById('hud-p1-name').innerText = p1.name;
-    document.getElementById('hud-p2-name').innerText = p2.name;
-    document.getElementById('hud-p1-icon').innerText = p1.avatar;
-    document.getElementById('hud-p2-icon').innerText = p2.avatar;
-    updateStars();
-
-    // Start music
-    startMusic();
-
-    // Booming intro
+async function startChallenge() {
     boom('THE ULTIMATE CHALLENGE', { size: 'text-5xl md:text-7xl', color: 'text-pink-400' });
     await wait(2200);
     boom('WILL BEGIN IN', { size: 'text-4xl md:text-6xl', color: 'text-white' });
-    await wait(1500);
-
-    // Neon 3-2-1 countdown
-    const nums = [
-        { n: '3', cls: 'neon-3' },
-        { n: '2', cls: 'neon-2' },
-        { n: '1', cls: 'neon-1' }
-    ];
-    for (const item of nums) {
-        boomHTML(`<div class="neon-num ${item.cls}">${item.n}</div>`);
-        if (synth && boomVoice) {
-            try {
-                const u = new SpeechSynthesisUtterance(item.n);
-                u.voice = boomVoice; u.pitch = 0.2; u.rate = 0.6; u.volume = 1;
-                synth.cancel(); synth.speak(u);
-            } catch(e) {}
-        }
-        await wait(1000);
+    await wait(1600);
+    for (const n of ['THREE', 'TWO', 'ONE']) {
+        boom(n, { size: 'countdown-num text-yellow-300', rate: 0.6 });
+        await wait(1100);
     }
-    boomHTML(`<div class="neon-num" style="color:#fbbf24;text-shadow:0 0 20px #fbbf24,0 0 60px #fbbf24,0 0 100px rgba(251,191,36,0.5);font-size:12rem">GO!</div>`);
-    if (synth && boomVoice) { try { const u = new SpeechSynthesisUtterance('Go'); u.voice = boomVoice; u.pitch = 0.2; u.rate = 0.6; synth.cancel(); synth.speak(u); } catch(e){} }
-    await wait(1000);
-    overlay.innerHTML = '';
-    await runNextGame();
-};
-
-function updateStars() {
-    for (let i = 0; i < 4; i++) {
-        const s1 = document.getElementById('star1-' + i);
-        const s2 = document.getElementById('star2-' + i);
-        if (s1) { s1.innerText = i < p1.stars ? '★' : '☆'; s1.classList.toggle('lit', i < p1.stars); }
-        if (s2) { s2.innerText = i < p2.stars ? '★' : '☆'; s2.classList.toggle('lit', i < p2.stars); }
-    }
+    boom('THINK OF GAMES', { size: 'text-5xl md:text-7xl', color: 'text-pink-400 pulse', rate: 0.75 });
+    await wait(1800);
+    clearOverlay();
+    await runRound();
 }
 
-async function runNextGame() {
-    if (currentGameIdx >= GAMES.length) { return showChampion(); }
-    const game = GAMES[currentGameIdx];
-    document.getElementById('hud-title').innerText = 'GAME ' + (currentGameIdx + 1) + ': ' + game.title;
-
-    // Announce game
-    boom(game.title, { size: 'text-4xl md:text-6xl', color: 'text-yellow-300' });
-    await wait(1800);
-    overlay.innerHTML = '';
-
+async function runRound() {
+    const game = MINIGAMES[Math.floor(Math.random() * MINIGAMES.length)];
     mgTitle.innerText = game.title;
     mgInstr.innerHTML = game.instr;
     mgBody.innerHTML = '';
-    clearStatus();
-    mgCard.classList.remove('mg-card-wide');
+    mgStatus.classList.add('opacity-0');
     panel.classList.add('show');
-    await wait(600);
+    await wait(800);
     await game.run();
 }
 
-function endGame(winner) {
-    cleanupAll();
+function endRound(winner) {
     panel.classList.remove('show');
-    if (winner === 1) p1.stars++;
-    else p2.stars++;
-    updateStars();
-
-    const wName = winner === 1 ? p1.name : p2.name;
-    const wAvatar = winner === 1 ? p1.avatar : p2.avatar;
-    const color = winner === 1 ? 'text-cyan-300' : 'text-pink-300';
-    boom(`${wAvatar} ${wName.toUpperCase()} WINS!`, { size: 'text-4xl md:text-6xl', color, rate: 0.7 });
-    currentGameIdx++;
-
+    roundsPlayed++;
+    const name = winner === 1 ? 'PLAYER 1' : 'PLAYER 2';
+    if (winner === 1) { p1Wins++; const pip = document.getElementById('pip1-' + p1Wins); if (pip) pip.style.opacity = '0.2'; }
+    else { p2Wins++; const pip = document.getElementById('pip2-' + p2Wins); if (pip) pip.style.opacity = '0.2'; }
+    boom(name + ' WINS!', { size: 'text-5xl md:text-7xl', color: winner === 1 ? 'text-cyan-300' : 'text-pink-300', rate: 0.7 });
     setTimeout(async () => {
-        overlay.innerHTML = '';
-        await runNextGame();
-    }, 2500);
+        clearOverlay();
+        if (p1Wins >= TARGET || p2Wins >= TARGET) {
+            const champ = p1Wins > p2Wins ? 'PLAYER 1' : 'PLAYER 2';
+            boom('CHAMPION: ' + champ, { size: 'text-4xl md:text-6xl', color: 'text-yellow-300', rate: 0.65 });
+            setTimeout(() => showRestart(), 3000);
+        } else {
+            await runRound();
+        }
+    }, 2200);
 }
 
-function showChampion() {
-    const champ = p1.stars > p2.stars ? p1 : (p2.stars > p1.stars ? p2 : null);
-    if (champ) {
-        boom(`${champ.avatar} ${champ.name.toUpperCase()} IS THE CHAMPION!`, { size: 'text-3xl md:text-5xl', color: 'text-yellow-300', rate: 0.65 });
-    } else {
-        boomHTML(`<div class="interactive text-center"><div class="boom-text text-4xl md:text-6xl text-yellow-300 mb-4">IT'S A TIE!</div><div class="text-slate-300 mb-8 text-lg">${p1.avatar} ${p1.name}: ${p1.stars} &nbsp; vs &nbsp; ${p2.avatar} ${p2.name}: ${p2.stars}</div><button class="btn-primary" onclick="resetMatch()">PLAY AGAIN</button></div>`);
-        return;
-    }
-    setTimeout(() => {
-        boomHTML(`<div class="interactive text-center">
-            <div class="boom-text text-4xl md:text-5xl text-yellow-300 mb-4">${champ.avatar} CHAMPION: ${champ.name.toUpperCase()}</div>
-            <div class="text-slate-300 mb-6 text-lg">Final Score: ${p1.avatar} ${p1.name} ${p1.stars} — ${p2.stars} ${p2.name} ${p2.avatar}</div>
-            <button class="btn-primary" onclick="resetMatch()">PLAY AGAIN</button>
-        </div>`);
-    }, 3000);
+function showRestart() {
+    overlay.innerHTML = `<div class="interactive text-center"><div class="boom-text text-3xl md:text-4xl text-white mb-8">CHAMPION CROWNED</div><button class="btn-primary" onclick="resetMatch()">PLAY AGAIN</button></div>`;
 }
 
 window.resetMatch = function() {
-    stopMusic();
-    p1.stars = 0; p2.stars = 0; currentGameIdx = 0;
-    updateStars();
-    showStartScreen();
+    p1Wins = 0; p2Wins = 0; roundsPlayed = 0;
+    [1,2].forEach(p => [1,2].forEach(i => { const pip = document.getElementById('pip'+p+'-'+i); if (pip) pip.style.opacity = '1'; }));
+    clearOverlay();
+    startChallenge();
 };
 
-// ===== GAME 1: TIC-TAC-TOE =====
-async function runTicTacToe() {
-    let board = Array(9).fill(null);
-    let turn = 1; // player 1 = X, player 2 = O
-    const p1Mark = 'X', p2Mark = 'O';
+function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+function showStatus(text, color) {
+    mgStatus.innerText = text;
+    mgStatus.style.color = color || '#fff';
+    mgStatus.classList.remove('opacity-0');
+}
+
+function keyCap(label, color, active) {
+    return `<span class="key-cap ${active ? 'active' : ''}" style="color:${color}">${label}</span>`;
+}
+
+// ===== MINIGAME: BUTTON MASH =====
+async function runMash() {
     mgBody.innerHTML = `
-        <div class="flex justify-around items-center mb-4">
-            <div class="${turn === 1 ? 'p1-color' : 'opacity-40'}"><span class="text-2xl">${p1.avatar}</span> <span class="logo-font">${p1.name}</span> = X</div>
-            <div class="${turn === 2 ? 'p2-color' : 'opacity-40'}"><span class="text-2xl">${p2.avatar}</span> <span class="logo-font">${p2.name}</span> = O</div>
+        <div class="flex justify-around items-center mb-6">
+            <div class="p1-color"><div class="text-xs font-black uppercase mb-2">Player 1</div>${keyCap('A','#38bdf8')}</div>
+            <div class="p2-color"><div class="text-xs font-black uppercase mb-2">Player 2</div>${keyCap('L','#f472b6')}</div>
         </div>
-        <div id="ttt-turn" class="logo-font text-lg mb-4"></div>
-        <div class="inline-grid grid-cols-3 gap-0 rounded-2xl overflow-hidden" id="ttt-board"></div>`;
+        <div class="flex gap-4 h-40 items-end justify-center">
+            <div class="w-20 bg-cyan-500/20 rounded-t-lg flex items-end overflow-hidden" style="height:100%"><div id="bar1" class="w-full bg-cyan-400" style="height:0%;transition:height 0.05s"></div></div>
+            <div class="w-20 bg-pink-500/20 rounded-t-lg flex items-end overflow-hidden" style="height:100%"><div id="bar2" class="w-full bg-pink-400" style="height:0%;transition:height 0.05s"></div></div>
+        </div>
+        <div id="mash-timer" class="logo-font text-4xl text-yellow-400 mt-4">5</div>`;
+    let c1 = 0, c2 = 0, timeLeft = 5, running = true;
+    const handler = (e) => {
+        if (!running) return;
+        if (e.code === 'KeyA') c1++;
+        if (e.code === 'KeyL') c2++;
+    };
+    addEventListener('keydown', handler);
+    const timerEl = document.getElementById('mash-timer');
+    const iv = setInterval(() => {
+        timeLeft -= 0.1; timerEl.innerText = Math.max(0, timeLeft).toFixed(1);
+        document.getElementById('bar1').style.height = Math.min(100, c1) + '%';
+        document.getElementById('bar2').style.height = Math.min(100, c2) + '%';
+        if (timeLeft <= 0) { clearInterval(iv); running = false; removeEventListener('keydown', handler); }
+    }, 100);
+    await wait(5200);
+    endRound(c1 >= c2 ? 1 : 2);
+}
 
-    const boardEl = document.getElementById('ttt-board');
-    const turnEl = document.getElementById('ttt-turn');
+// ===== MINIGAME: QUICK DRAW =====
+async function runDraw() {
+    mgBody.innerHTML = `
+        <div class="flex justify-around items-center mb-8">
+            <div class="p1-color"><div class="text-xs font-black uppercase mb-2">Player 1</div>${keyCap('A','#38bdf8')}</div>
+            <div class="p2-color"><div class="text-xs font-black uppercase mb-2">Player 2</div>${keyCap('L','#f472b6')}</div>
+        </div>
+        <div id="draw-light" class="w-48 h-48 mx-auto rounded-full bg-red-500 flex items-center justify-center text-5xl">WAIT</div>`;
+    showStatus('Get ready...', '#fbbf24');
+    await wait(1500 + Math.random() * 2500);
+    const light = document.getElementById('draw-light');
+    light.className = 'w-48 h-48 mx-auto rounded-full bg-green-500 flex items-center justify-center text-5xl pulse';
+    light.innerText = 'GO!';
+    showStatus('PRESS NOW!', '#10b981');
+    let winner = 0;
+    const handler = (e) => {
+        if (winner) return;
+        if (e.code === 'KeyA') winner = 1;
+        if (e.code === 'KeyL') winner = 2;
+    };
+    addEventListener('keydown', handler);
+    // false start window
+    if (!winner) { await wait(2500); }
+    removeEventListener('keydown', handler);
+    if (!winner) { showStatus('No one drew!', '#ef4444'); await wait(1000); winner = Math.random() < 0.5 ? 1 : 2; }
+    endRound(winner);
+}
 
-    function render() {
-        boardEl.innerHTML = '';
-        board.forEach((val, i) => {
-            const cell = document.createElement('div');
-            cell.className = 'ttt-cell' + (val ? ' disabled' : '');
-            if (val === 'X') { cell.innerText = 'X'; cell.style.color = '#38bdf8'; }
-            else if (val === 'O') { cell.innerText = 'O'; cell.style.color = '#f472b6'; }
-            if (!val) {
-                cell.onclick = () => play(i);
-            }
-            boardEl.appendChild(cell);
-        });
-        turnEl.innerText = turn === 1 ? `${p1.avatar} ${p1.name}'s turn` : `${p2.avatar} ${p2.name}'s turn`;
-        turnEl.style.color = turn === 1 ? '#38bdf8' : '#f472b6';
-        // Update header highlight
-        mgBody.querySelector('.flex').children[0].className = turn === 1 ? 'p1-color' : 'opacity-40';
-        mgBody.querySelector('.flex').children[1].className = turn === 2 ? 'p2-color' : 'opacity-40';
+// ===== MINIGAME: TUG OF WAR =====
+async function runTug() {
+    mgBody.innerHTML = `
+        <div class="flex justify-around items-center mb-6">
+            <div class="p1-color text-left"><div class="text-xs font-black uppercase mb-2">P1: alternate</div><div class="flex gap-1">${keyCap('A','#38bdf8')}${keyCap('S','#38bdf8')}</div></div>
+            <div class="p2-color text-right"><div class="text-xs font-black uppercase mb-2">P2: alternate</div><div class="flex gap-1">${keyCap('K','#f472b6')}${keyCap('L','#f472b6')}</div></div>
+        </div>
+        <div class="tug-bar mb-4">
+            <div id="tug1" class="tug-fill-p1" style="flex:50"></div>
+            <div id="tug2" class="tug-fill-p2" style="flex:50"></div>
+        </div>
+        <div id="tug-marker" class="text-3xl">🪢</div>`;
+    let pos = 50; // 0 = p1 wins, 100 = p2 wins
+    let p1Last = null, p2Last = null;
+    const handler = (e) => {
+        if (e.code === 'KeyA' && p1Last !== 'A') { p1Last = 'A'; pos -= 4; }
+        if (e.code === 'KeyS' && p1Last !== 'S') { p1Last = 'S'; pos -= 4; }
+        if (e.code === 'KeyK' && p2Last !== 'K') { p2Last = 'K'; pos += 4; }
+        if (e.code === 'KeyL' && p2Last !== 'L') { p2Last = 'L'; pos += 4; }
+        pos = Math.max(0, Math.min(100, pos));
+        document.getElementById('tug1').style.flex = pos;
+        document.getElementById('tug2').style.flex = 100 - pos;
+    };
+    addEventListener('keydown', handler);
+    const decay = setInterval(() => { pos = Math.max(0, Math.min(100, pos + (pos < 50 ? -0.3 : 0.3))); document.getElementById('tug1').style.flex = pos; document.getElementById('tug2').style.flex = 100 - pos; }, 100);
+    let done = false;
+    while (!done) {
+        await wait(100);
+        if (pos <= 0 || pos >= 100) done = true;
     }
+    clearInterval(decay); removeEventListener('keydown', handler);
+    endRound(pos <= 0 ? 1 : 2);
+}
 
-    function checkWin(b, mark) {
-        const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-        return wins.some(w => w.every(i => b[i] === mark));
-    }
-
-    function play(idx) {
-        if (board[idx]) return;
-        board[idx] = turn === 1 ? p1Mark : p2Mark;
-        const mark = turn === 1 ? p1Mark : p2Mark;
-        if (checkWin(board, mark)) {
-            render();
-            endGame(turn);
+// ===== MINIGAME: COLOR REACT =====
+async function runReact() {
+    mgBody.innerHTML = `
+        <div class="flex justify-around items-center mb-6">
+            <div class="p1-color"><div class="text-xs font-black uppercase mb-2">Player 1</div>${keyCap('A','#38bdf8')}</div>
+            <div class="p2-color"><div class="text-xs font-black uppercase mb-2">Player 2</div>${keyCap('L','#f472b6')}</div>
+        </div>
+        <div id="react-light" class="w-48 h-48 mx-auto rounded-3xl bg-slate-700 flex items-center justify-center text-3xl font-black">READY</div>
+        <p class="text-xs text-slate-400 mt-4">Only press on GREEN. Red = false start!</p>`;
+    const light = document.getElementById('react-light');
+    let winner = 0, active = false;
+    const handler = (e) => {
+        if (winner) return;
+        if (e.code !== 'KeyA' && e.code !== 'KeyL') return;
+        if (!active) { // false start
+            winner = e.code === 'KeyA' ? 2 : 1; // other player wins
+            light.className = 'w-48 h-48 mx-auto rounded-3xl bg-red-600 flex items-center justify-center text-3xl font-black';
+            light.innerText = 'FALSE START!';
             return;
         }
-        if (board.every(c => c)) {
-            render();
-            showStatus("IT'S A DRAW!", '#fbbf24');
-            // Draw = sudden death: pick random winner
-            setTimeout(() => endGame(Math.random() < 0.5 ? 1 : 2), 1500);
-            return;
+        winner = e.code === 'KeyA' ? 1 : 2;
+    };
+    addEventListener('keydown', handler);
+    for (let round = 0; round < 3 && !winner; round++) {
+        light.className = 'w-48 h-48 mx-auto rounded-3xl bg-slate-700 flex items-center justify-center text-3xl font-black';
+        light.innerText = 'WAIT...';
+        await wait(800 + Math.random() * 1800);
+        if (winner) break;
+        // occasional fake-out (yellow)
+        if (Math.random() < 0.35 && round === 0) {
+            light.className = 'w-48 h-48 mx-auto rounded-3xl bg-yellow-500 flex items-center justify-center text-3xl font-black';
+            light.innerText = 'NOT YET';
+            await wait(700); continue;
         }
-        turn = turn === 1 ? 2 : 1;
-        render();
+        light.className = 'w-48 h-48 mx-auto rounded-3xl bg-green-500 flex items-center justify-center text-3xl font-black pulse';
+        light.innerText = 'NOW!';
+        active = true;
+        await wait(1200);
+        active = false;
     }
-
-    render();
+    removeEventListener('keydown', handler);
+    if (!winner) winner = Math.random() < 0.5 ? 1 : 2;
+    endRound(winner);
 }
 
-// ===== GAME 2: EGG CATCH =====
-async function runEggCatch() {
-    mgCard.classList.add('mg-card-wide');
-    mgBody.innerHTML = `
-        <div class="flex justify-between items-center mb-4">
-            <div class="p1-color"><span class="text-xl">${p1.avatar}</span> <span class="logo-font text-sm">${p1.name}</span><br><span id="ec-p1-score" class="text-3xl logo-font">0</span></div>
-            <div id="ec-timer" class="logo-font text-3xl text-yellow-400">20</div>
-            <div class="p2-color text-right"><span class="text-xl">${p2.avatar}</span> <span class="logo-font text-sm">${p2.name}</span><br><span id="ec-p2-score" class="text-3xl logo-font">0</span></div>
-        </div>
-        <div class="relative" style="height:400px">
-            <canvas id="ec-canvas" width="800" height="400" class="w-full rounded-2xl" style="background:#0a1628"></canvas>
-        </div>
-        <p class="text-xs text-slate-400 mt-3">${p1.name}: move with A/D keys &nbsp;|&nbsp; ${p2.name}: move with ←/→ arrows</p>`;
-
-    const canvas = document.getElementById('ec-canvas');
-    const ctx = canvas.getContext('2d');
-    let p1Score = 0, p2Score = 0, timeLeft = 20, active = true;
-    let p1X = 150, p2X = 650;
-    let eggs = [];
-
-    const keys = {};
-    const keyHandler = (e) => { keys[e.code] = true; e.preventDefault(); };
-    const keyUpHandler = (e) => { keys[e.code] = false; e.preventDefault(); };
-    addEventListener('keydown', keyHandler);
-    addEventListener('keyup', keyUpHandler);
-    addCleanup(() => { removeEventListener('keydown', keyHandler); removeEventListener('keyup', keyUpHandler); });
-
-    const timer = setInterval(() => {
-        timeLeft--;
-        document.getElementById('ec-timer').innerText = timeLeft;
-        if (timeLeft <= 0) { clearInterval(timer); active = false; }
-    }, 1000);
-    addCleanup(() => clearInterval(timer));
-
-    function loop() {
-        if (!active) return;
-        ctx.clearRect(0, 0, 800, 400);
-
-        // Divider
-        ctx.fillStyle = 'rgba(56,189,248,0.05)';
-        ctx.fillRect(0, 0, 400, 400);
-        ctx.fillStyle = 'rgba(244,114,182,0.05)';
-        ctx.fillRect(400, 0, 400, 400);
-        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-        ctx.setLineDash([10, 10]);
-        ctx.beginPath(); ctx.moveTo(400, 0); ctx.lineTo(400, 400); ctx.stroke();
-        ctx.setLineDash([]);
-
-        // Move baskets
-        if (keys['KeyA']) p1X = Math.max(40, p1X - 6);
-        if (keys['KeyD']) p1X = Math.min(360, p1X + 6);
-        if (keys['ArrowLeft']) p2X = Math.max(440, p2X - 6);
-        if (keys['ArrowRight']) p2X = Math.min(760, p2X + 6);
-
-        // Draw baskets
-        ctx.font = '32px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(p1.avatar, p1X, 370);
-        ctx.fillText(p2.avatar, p2X, 370);
-
-        // Spawn eggs
-        if (Math.random() < 0.04) {
-            const side = Math.random() < 0.5 ? 1 : 2;
-            const x = side === 1 ? Math.random() * 340 + 30 : Math.random() * 340 + 430;
-            eggs.push({ x, y: -20, speed: 3 + Math.random() * 2, side });
-        }
-
-        eggs.forEach((e, i) => {
-            e.y += e.speed;
-            ctx.font = '24px Arial';
-            ctx.fillText('🥚', e.x, e.y);
-
-            if (e.side === 1 && e.y > 340 && e.y < 380 && Math.abs(e.x - p1X) < 30) {
-                eggs.splice(i, 1); p1Score++;
-                document.getElementById('ec-p1-score').innerText = p1Score;
-            }
-            if (e.side === 2 && e.y > 340 && e.y < 380 && Math.abs(e.x - p2X) < 30) {
-                eggs.splice(i, 1); p2Score++;
-                document.getElementById('ec-p2-score').innerText = p2Score;
-            }
-            if (e.y > 400) eggs.splice(i, 1);
-        });
-
-        requestAnimationFrame(loop);
-    }
-    loop();
-
-    // Wait for timer to finish
-    await new Promise(r => setTimeout(r, 21500));
-    mgCard.classList.remove('mg-card-wide');
-    endGame(p1Score >= p2Score ? 1 : 2);
-}
-
-// ===== GAME 3: DOTS & BOXES =====
-async function runDotsBoxes() {
-    const GRID = 4; // 4x4 dots = 3x3 boxes
-    let lines = { h: {}, v: {} }; // h[r][c] = true, v[r][c] = true
-    let boxes = {}; // "r,c" => player
-    let turn = 1;
-
-    function isBoxComplete(r, c) {
-        return (lines.h[r]?.[c]) && (lines.h[r+1]?.[c]) &&
-               (lines.v[r]?.[c]) && (lines.v[r]?.[c+1]);
-    }
-
-    mgBody.innerHTML = `
-        <div class="flex justify-around items-center mb-4">
-            <div id="db-p1" class="${turn === 1 ? 'p1-color' : 'opacity-40'}"><span class="text-xl">${p1.avatar}</span> <span class="logo-font text-sm">${p1.name}</span>: <span id="db-s1" class="text-2xl logo-font">0</span></div>
-            <div id="db-p2" class="${turn === 2 ? 'p2-color' : 'opacity-40'}"><span class="text-xl">${p2.avatar}</span> <span class="logo-font text-sm">${p2.name}</span>: <span id="db-s2" class="text-2xl logo-font">0</span></div>
-        </div>
-        <div id="db-turn" class="logo-font text-lg mb-4"></div>
-        <div class="flex justify-center" id="db-board"></div>`;
-
-    const boardEl = document.getElementById('db-board');
-    const turnEl = document.getElementById('db-turn');
-
-    function buildBoard() {
-        boardEl.innerHTML = '';
-        const table = document.createElement('div');
-        table.style.display = 'grid';
-        table.style.gridTemplateColumns = `repeat(${GRID * 2 - 1}, auto)`;
-
-        for (let r = 0; r < GRID * 2 - 1; r++) {
-            for (let c = 0; c < GRID * 2 - 1; c++) {
-                const cell = document.createElement('div');
-                cell.style.display = 'flex';
-                cell.style.alignItems = 'center';
-                cell.style.justifyContent = 'center';
-
-                const isDotRow = r % 2 === 0;
-                const isDotCol = c % 2 === 0;
-
-                if (isDotRow && isDotCol) {
-                    // Dot
-                    const dot = document.createElement('div');
-                    dot.className = 'dot';
-                    cell.appendChild(dot);
-                } else if (isDotRow && !isDotCol) {
-                    // Horizontal line
-                    const line = document.createElement('div');
-                    const lr = r / 2, lc = Math.floor(c / 2);
-                    line.className = 'h-line';
-                    if (lines.h[lr] && lines.h[lr][lc]) {
-                        line.classList.add('drawn');
-                        line.style.color = lines.h[lr][lc] === 1 ? '#38bdf8' : '#f472b6';
-                    } else {
-                        line.onclick = () => drawH(lr, lc);
-                    }
-                    cell.appendChild(line);
-                } else if (!isDotRow && isDotCol) {
-                    // Vertical line
-                    const line = document.createElement('div');
-                    const vr = Math.floor(r / 2), vc = c / 2;
-                    line.className = 'v-line';
-                    if (lines.v[vr] && lines.v[vr][vc]) {
-                        line.classList.add('drawn');
-                        line.style.color = lines.v[vr][vc] === 1 ? '#38bdf8' : '#f472b6';
-                    } else {
-                        line.onclick = () => drawV(vr, vc);
-                    }
-                    cell.appendChild(line);
-                } else {
-                    // Box center
-                    const br = Math.floor(r / 2), bc = Math.floor(c / 2);
-                    const box = document.createElement('div');
-                    box.className = 'box-fill';
-                    if (boxes[br + ',' + bc] === 1) { box.innerText = p1.avatar; box.style.color = '#38bdf8'; }
-                    else if (boxes[br + ',' + bc] === 2) { box.innerText = p2.avatar; box.style.color = '#f472b6'; }
-                    cell.appendChild(box);
-                }
-                table.appendChild(cell);
-            }
-        }
-        boardEl.appendChild(table);
-        turnEl.innerText = turn === 1 ? `${p1.avatar} ${p1.name}'s turn` : `${p2.avatar} ${p2.name}'s turn`;
-        turnEl.style.color = turn === 1 ? '#38bdf8' : '#f472b6';
-        document.getElementById('db-p1').className = turn === 1 ? 'p1-color' : 'opacity-40';
-        document.getElementById('db-p2').className = turn === 2 ? 'p2-color' : 'opacity-40';
-    }
-
-    function drawH(r, c) {
-        if (lines.h[r] && lines.h[r][c]) return;
-        if (!lines.h[r]) lines.h[r] = {};
-        lines.h[r][c] = turn;
-        checkBoxes();
-    }
-    function drawV(r, c) {
-        if (lines.v[r] && lines.v[r][c]) return;
-        if (!lines.v[r]) lines.v[r] = {};
-        lines.v[r][c] = turn;
-        checkBoxes();
-    }
-
-    function checkBoxes() {
-        let claimed = 0;
-        for (let r = 0; r < GRID - 1; r++) {
-            for (let c = 0; c < GRID - 1; c++) {
-                if (!boxes[r + ',' + c] && isBoxComplete(r, c)) {
-                    boxes[r + ',' + c] = turn;
-                    claimed++;
-                }
-            }
-        }
-        document.getElementById('db-s1').innerText = Object.values(boxes).filter(v => v === 1).length;
-        document.getElementById('db-s2').innerText = Object.values(boxes).filter(v => v === 2).length;
-
-        const totalBoxes = (GRID - 1) * (GRID - 1);
-        if (Object.keys(boxes).length >= totalBoxes) {
-            buildBoard();
-            const s1 = Object.values(boxes).filter(v => v === 1).length;
-            const s2 = Object.values(boxes).filter(v => v === 2).length;
-            endGame(s1 >= s2 ? 1 : 2);
-            return;
-        }
-
-        if (claimed === 0) turn = turn === 1 ? 2 : 1; // switch turn if no box claimed
-        buildBoard();
-    }
-
-    buildBoard();
-}
-
-// ===== GAME 4: HANGMAN =====
-const HANGMAN_WORDS = [
-    'DRAGON', 'ARCADE', 'CHAMPION', 'VICTORY', 'BATTLE', 'PUZZLE', 'GALAXY',
-    'ROCKET', 'TROPHY', 'WIZARD', 'COSMIC', 'LEGEND', 'NEON', 'GLITCH',
-    'TURBO', 'PIXEL', 'CYBER', 'POWER', 'STAR', 'QUEST'
-];
-
-async function runHangman() {
-    const word = HANGMAN_WORDS[Math.floor(Math.random() * HANGMAN_WORDS.length)];
-    let guessed = new Set();
-    let wrong = 0;
-    const MAX_WRONG = 6;
-    let turn = 1;
-    let solved = false;
-
-    mgBody.innerHTML = `
-        <div class="flex justify-around items-center mb-4">
-            <div id="hm-p1" class="${turn === 1 ? 'p1-color' : 'opacity-40'}"><span class="text-xl">${p1.avatar}</span> <span class="logo-font text-sm">${p1.name}</span></div>
-            <div id="hm-p2" class="${turn === 2 ? 'p2-color' : 'opacity-40'}"><span class="text-xl">${p2.avatar}</span> <span class="logo-font text-sm">${p2.name}</span></div>
-        </div>
-        <div id="hm-turn" class="logo-font text-lg mb-4"></div>
-        <div id="hm-word" class="mb-6"></div>
-        <div class="flex justify-center gap-6 mb-4">
-            <div>
-                <div class="text-xs text-slate-400 uppercase mb-2">Wrong Guesses</div>
-                <div id="hm-wrong" class="logo-font text-2xl text-red-400">0 / 6</div>
-            </div>
-        </div>
-        <div id="hm-keys" class="flex flex-wrap justify-center gap-1"></div>`;
-
-    const wordEl = document.getElementById('hm-word');
-    const keysEl = document.getElementById('hm-keys');
-    const turnEl = document.getElementById('hm-turn');
-    const wrongEl = document.getElementById('hm-wrong');
-
-    function renderWord() {
-        wordEl.innerHTML = word.split('').map(letter => 
-            guessed.has(letter) ? `<span class="hangman-letter" style="color:${guessed.has(letter) ? '#fbbf24' : '#475569'}">${letter}</span>` : '<span class="hangman-letter"></span>'
-        ).join('');
-    }
-
-    function renderKeys() {
-        keysEl.innerHTML = '';
-        'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(letter => {
-            const btn = document.createElement('button');
-            btn.className = 'key-btn';
-            btn.innerText = letter;
-            if (guessed.has(letter)) {
-                btn.disabled = true;
-                btn.classList.add(word.includes(letter) ? 'correct' : 'wrong');
-            } else {
-                btn.onclick = () => guess(letter);
-            }
-            keysEl.appendChild(btn);
-        });
-        turnEl.innerText = turn === 1 ? `${p1.avatar} ${p1.name}'s turn` : `${p2.avatar} ${p2.name}'s turn`;
-        turnEl.style.color = turn === 1 ? '#38bdf8' : '#f472b6';
-        document.getElementById('hm-p1').className = turn === 1 ? 'p1-color' : 'opacity-40';
-        document.getElementById('hm-p2').className = turn === 2 ? 'p2-color' : 'opacity-40';
-    }
-
-    function guess(letter) {
-        if (solved || guessed.has(letter)) return;
-        guessed.add(letter);
-
-        if (word.includes(letter)) {
-            // Correct: check if word is fully solved
-            if (word.split('').every(l => guessed.has(l))) {
-                solved = true;
-                renderWord(); renderKeys();
-                endGame(turn);
-                return;
-            }
-            // Same player goes again
-        } else {
-            wrong++;
-            wrongEl.innerText = wrong + ' / 6';
-            turn = turn === 1 ? 2 : 1;
-            if (wrong >= MAX_WRONG) {
-                // Both failed, reveal word, random winner
-                renderWord(); renderKeys();
-                showStatus('Word was: ' + word, '#ef4444');
-                setTimeout(() => endGame(Math.random() < 0.5 ? 1 : 2), 2000);
-                return;
-            }
-        }
-        renderWord();
-        renderKeys();
-    }
-
-    renderWord();
-    renderKeys();
-}
-
-// ===== INIT =====
+// ===== START =====
 initArena();
-showStartScreen();
+overlay.innerHTML = `<div class="interactive text-center">
+    <div class="boom-text text-4xl md:text-6xl text-pink-400 mb-4">2 PLAYER VERSUS</div>
+    <div class="text-slate-300 mb-8 max-w-md mx-auto">A booming announcer. A 3D arena. Surprise head-to-head mini-games. First to 2 rounds is champion!</div>
+    <div class="flex justify-center gap-8 mb-8 text-sm">
+        <div class="p1-color"><div class="font-black uppercase mb-1">Player 1</div><div class="flex gap-1">${keyCap('A','#38bdf8')}${keyCap('S','#38bdf8')}</div></div>
+        <div class="p2-color"><div class="font-black uppercase mb-1">Player 2</div><div class="flex gap-1">${keyCap('K','#f472b6')}${keyCap('L','#f472b6')}</div></div>
+    </div>
+    <button class="btn-primary" onclick="startChallenge()">START THE CHALLENGE</button>
+</div>`;
+window.startChallenge = startChallenge;
 </script>
 </body>
 </html>
