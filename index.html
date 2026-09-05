@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rohan's Arcade Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Bungee+Spice&family=Bungee&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -124,6 +123,9 @@
             border-color: white transparent transparent;
         }
     </style>
+  <meta property="og:image" content="https://bolt.new/static/og_default.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="https://bolt.new/static/og_default.png">
 </head>
 <body class="min-h-screen">
 
@@ -147,7 +149,7 @@
                             <span class="text-yellow-400 font-black" id="nav-eggs">🥚 0</span>
                         </div>
                         <button onclick="showView('account')" class="flex items-center gap-2 group">
-                            <img id="nav-avatar" src="" class="w-8 h-8 rounded-full border border-pink-500/50 object-cover group-hover:scale-110 transition-transform">
+                            <img id="nav-avatar" src="" class="w-8 h-8 rounded-full border border-pink-500/50 object-contain group-hover:scale-110 transition-transform">
                             <span id="nav-username" class="hidden md:block text-xs font-bold uppercase tracking-widest text-white group-hover:text-pink-400"></span>
                         </button>
                     </div>
@@ -230,7 +232,7 @@
             </div>
 
             <!-- Studio Beats -->
-            <a href="https://gamehub.rohansweb.co.uk/StudioBeats" target="_blank" class="hub-card glass-panel p-6 border-blue-400/30 group block">
+            <a href="StudioBeats.html" target="_blank" class="hub-card glass-panel p-6 border-blue-400/30 group block">
                 <div class="h-40 rounded-xl bg-gradient-to-br from-blue-600 to-purple-700 mb-4 flex items-center justify-center">
                     <span class="text-6xl group-hover:scale-125 transition-transform">🎧</span>
                 </div>
@@ -250,7 +252,7 @@
                 <div class="relative group">
                     <div id="pet-container" class="w-56 h-56 relative mb-4">
                         <div id="companion-speech" class="speech-bubble">Hello!</div>
-                        <img id="acc-avatar" src="" class="w-full h-full rounded-3xl border-4 border-pink-500/30 shadow-2xl object-cover pet-bounce transition-all duration-1000">
+                        <img id="acc-avatar" src="" class="w-full h-full rounded-3xl border-4 border-pink-500/30 shadow-2xl object-contain p-2 pet-bounce transition-all duration-1000">
                     </div>
                     <button onclick="showView('avatar')" class="absolute bottom-4 right-0 bg-pink-500 p-3 rounded-full border-4 border-slate-900 group-hover:scale-110 transition-transform shadow-xl">🍎</button>
                 </div>
@@ -287,11 +289,9 @@
         <div class="glass-panel p-8">
             <h2 class="logo-font text-3xl text-pink-400 mb-6 text-center">LOGIN</h2>
             
-            <div id="google-signin-btn" class="flex justify-center mb-8"></div>
-            
             <div class="flex items-center gap-4 mb-6">
                 <hr class="flex-grow border-white/10">
-                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">OR EMAIL</span>
+                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">EMAIL LOGIN</span>
                 <hr class="flex-grow border-white/10">
             </div>
 
@@ -398,9 +398,6 @@
     </section>
 
     <script>
-        // GOOGLE CONFIG
-        const GOOGLE_CLIENT_ID = "607124730463-rourlv2ariaqrji9cded64pk0otujkca.apps.googleusercontent.com";
-
         let user = null;
         let totalEggs = 0;
         let selectedPetImg = "";
@@ -422,51 +419,6 @@
         };
 
         // --- AUTH LOGIC ---
-        function initGoogleAuth() {
-            if (typeof google === 'undefined') {
-                setTimeout(initGoogleAuth, 100);
-                return;
-            }
-            google.accounts.id.initialize({
-                client_id: GOOGLE_CLIENT_ID,
-                callback: handleGoogleResponse
-            });
-            google.accounts.id.renderButton(
-                document.getElementById("google-signin-btn"),
-                { theme: "filled_blue", size: "large", width: 280 }
-            );
-        }
-
-        function handleGoogleResponse(response) {
-            const base64Url = response.credential.split('.')[1];
-            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-            }).join(''));
-
-            const payload = JSON.parse(jsonPayload);
-            const userData = {
-                id: payload.sub,
-                username: payload.name,
-                email: payload.email,
-                avatar: payload.picture || `https://gamehub.rohansweb.co.uk/download%20(4).png`,
-                petType: 'Companion',
-                eggs: 0
-            };
-            
-            // Sync with local store
-            const saved = localStorage.getItem(`user_${payload.email}`);
-            if(saved) {
-                const existing = JSON.parse(saved);
-                userData.eggs = existing.eggs || 0;
-                userData.avatar = existing.avatar;
-                userData.petType = existing.petType;
-            }
-            
-            loginSession(userData);
-            showView('hub');
-        }
-
         function handleLogin() {
             const email = document.getElementById('login-email').value;
             const pass = document.getElementById('login-password').value;
@@ -483,7 +435,7 @@
                 loginSession(userData);
             } else {
                 // Auto-create if not found (Demo behavior)
-                const userData = { id: Date.now(), username: email.split('@')[0], email, password: pass, avatar: `https://gamehub.rohansweb.co.uk/download%20(4).png`, petType: 'Companion', eggs: 0 };
+                const userData = { id: Date.now(), username: email.split('@')[0], email, password: pass, avatar: `download%20(4).png`, petType: 'Companion', eggs: 0 };
                 loginSession(userData);
             }
             showView('hub');
@@ -500,7 +452,7 @@
                 username: userIn, 
                 email: emailIn, 
                 password: passIn,
-                avatar: `https://gamehub.rohansweb.co.uk/download%20(4).png`, 
+                avatar: `download%20(4).png`, 
                 petType: 'Companion', 
                 eggs: 0 
             });
@@ -551,7 +503,6 @@
             });
             document.getElementById('view-' + viewId).classList.remove('hidden');
             if(viewId === 'avatar') initAvatarGrid();
-            if(viewId === 'login') initGoogleAuth();
             window.scrollTo(0,0);
         }
 
@@ -559,11 +510,11 @@
             const grid = document.getElementById('avatar-grid');
             grid.innerHTML = '';
             fruitOptions.forEach(fruit => {
-                const imgUrl = `https://gamehub.rohansweb.co.uk/download%20(${fruit.id}).png`;
+                const imgUrl = `download%20(${fruit.id}).png`;
                 const div = document.createElement('div');
                 div.className = "avatar-option glass-panel p-4 flex flex-col items-center gap-2" + (user && user.avatar === imgUrl ? " selected" : "");
                 div.onclick = () => selectFruit(imgUrl, fruit.name, div);
-                div.innerHTML = `<img src="${imgUrl}" class="w-24 h-24 rounded-xl object-cover pointer-events-none"><span class="logo-font text-[10px] text-white opacity-80">${fruit.name}</span>`;
+                div.innerHTML = `<img src="${imgUrl}" class="w-24 h-24 rounded-xl object-contain p-1 pointer-events-none"><span class="logo-font text-[10px] text-white opacity-80">${fruit.name}</span>`;
                 grid.appendChild(div);
             });
         }
