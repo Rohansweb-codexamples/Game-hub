@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rohan's Arcade Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <link href="https://fonts.googleapis.com/css2?family=Bungee+Spice&family=Bungee&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.18/auth0-spa-js.production.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bungee+Spice&family=Bungee&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary-pink: #f472b6;
@@ -287,34 +287,29 @@
         <div class="glass-panel p-8">
             <h2 class="logo-font text-3xl text-pink-400 mb-6 text-center">LOGIN</h2>
             
-            <div id="google-signin-btn" class="flex justify-center mb-8"></div>
-            
-            <div class="flex items-center gap-4 mb-6">
-                <hr class="flex-grow border-white/10">
-                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">OR EMAIL</span>
-                <hr class="flex-grow border-white/10">
-            </div>
-
+            <p class="text-center text-slate-400 text-sm mb-6">Sign in securely using your GameHub account.</p>
             <div class="space-y-4">
-                <input type="email" id="login-email" placeholder="Email Address" class="input-field">
-                <input type="password" id="login-password" placeholder="Password" class="input-field">
-                <button onclick="handleLogin()" id="btn-login" class="w-full bg-pink-500 hover:bg-pink-600 py-4 rounded-xl font-black text-white transition-all shadow-lg shadow-pink-500/20">ENTER ARCADE</button>
-                <p class="text-center text-xs text-slate-500 mt-4">Don't have an account? <button onclick="showView('signup')" class="text-pink-400 underline font-bold">Sign Up</button></p>
+                <button onclick="auth0Login()" id="btn-login" class="w-full bg-pink-500 hover:bg-pink-600 py-4 rounded-xl font-black text-white transition-all shadow-lg shadow-pink-500/20">ENTER ARCADE</button>
+                <p class="text-center text-xs text-slate-500 mt-4">New to GameHub? <button onclick="showView('signup')" class="text-pink-400 underline font-bold">Create an account</button></p>
             </div>
         </div>
+    </section>
+
+    </div>
     </section>
 
     <section id="view-signup" class="container mx-auto px-4 py-20 max-w-md hidden">
         <div class="glass-panel p-8">
             <h2 class="logo-font text-3xl text-blue-400 mb-6 text-center">SIGN UP</h2>
             <div class="space-y-4">
-                <input type="text" id="signup-user" placeholder="Arcade Name" class="input-field">
-                <input type="email" id="signup-email" placeholder="Email Address" class="input-field">
-                <input type="password" id="signup-password" placeholder="Create Password" class="input-field">
-                <button onclick="handleSignup()" id="btn-signup" class="w-full bg-blue-500 hover:bg-blue-600 py-4 rounded-xl font-black text-white transition-all shadow-lg shadow-blue-500/20">START ADVENTURE</button>
+                <p class="text-center text-slate-400 text-sm">Create your GameHub account on the secure Auth0 sign-up page. Your games and progress will remain on GameHub.</p>
+                <button onclick="auth0Signup()" id="btn-signup" class="w-full bg-blue-500 hover:bg-blue-600 py-4 rounded-xl font-black text-white transition-all shadow-lg shadow-blue-500/20">CREATE ACCOUNT</button>
                 <button onclick="showView('login')" class="w-full text-xs text-slate-500 text-center uppercase font-bold mt-4">Back to Login</button>
             </div>
         </div>
+    </section>
+
+    </div>
     </section>
 
     <!-- AVATAR SELECTION -->
@@ -421,109 +416,119 @@
             high: ["I'm the coolest fruit ever!", "Look at all those eggs!", "Best friends forever!", "Level 10 when?"]
         };
 
-        // --- AUTH LOGIC ---
-        function initGoogleAuth() {
-            if (typeof google === 'undefined') {
-                setTimeout(initGoogleAuth, 100);
+        // --- AUTH0 AUTHENTICATION ---
+        const AUTH0_DOMAIN = "rohansweb.uk.auth0.com";
+        const AUTH0_CLIENT_ID = "USXhfUURMjKhcqWwk5HgvVSAKdTTxdAB";
+        let auth0Client = null;
+        let auth0Starting = false;
+
+        async function initAuth0() {
+            if (auth0Starting) return;
+            auth0Starting = true;
+            try {
+                auth0Client = await auth0.createAuth0Client({
+                    domain: AUTH0_DOMAIN,
+                    clientId: AUTH0_CLIENT_ID,
+                    cacheLocation: "memory",
+                    authorizationParams: { redirect_uri: window.location.origin }
+                });
+
+                const params = new URLSearchParams(window.location.search);
+                if (params.has("error")) {
+                    alert("GameHub sign-in failed: " +
+                        (params.get("error_description") || params.get("error")));
+                    history.replaceState({}, document.title, location.pathname);
+                } else if (params.has("code") && params.has("state")) {
+                    await auth0Client.handleRedirectCallback();
+                    history.replaceState({}, document.title, location.pathname);
+                }
+
+                if (await auth0Client.isAuthenticated()) {
+                    const profile = await auth0Client.getUser();
+                    const email = profile.email || profile.nickname || "";
+                    const saved = email ? localStorage.getItem("user_" + email) : null;
+                    const previous = saved ? JSON.parse(saved) : {};
+                    const userData = {
+                        id: profile.sub,
+                        username: profile.nickname || profile.name ||
+                            (email.includes("@") ? email.split("@")[0] : email) || "GameHub Player",
+                        email: email,
+                        avatar: previous.avatar || profile.picture ||
+                            "https://gamehub.rohansweb.co.uk/download%20(4).png",
+                        petType: previous.petType || "Companion",
+                        eggs: Number(previous.eggs) || 0
+                    };
+                    loginSession(userData);
+                    showView("hub");
+                } else {
+                    user = null;
+                    totalEggs = 0;
+                    updateUI();
+                    showView("login");
+                }
+            } catch (error) {
+                console.error("Auth0 initialization error:", error);
+                alert("GameHub couldn't connect to Auth0. Check the Auth0 URL settings and try again.");
+                showView("login");
+            } finally {
+                auth0Starting = false;
+            }
+        }
+
+        function auth0Login() {
+            if (!auth0Client) {
+                alert("GameHub sign-in is still loading. Please try again.");
                 return;
             }
-            google.accounts.id.initialize({
-                client_id: GOOGLE_CLIENT_ID,
-                callback: handleGoogleResponse
-            });
-            google.accounts.id.renderButton(
-                document.getElementById("google-signin-btn"),
-                { theme: "filled_blue", size: "large", width: 280 }
-            );
+            auth0Client.loginWithRedirect();
         }
 
-        function handleGoogleResponse(response) {
-            const base64Url = response.credential.split('.')[1];
-            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-            }).join(''));
-
-            const payload = JSON.parse(jsonPayload);
-            const userData = {
-                id: payload.sub,
-                username: payload.name,
-                email: payload.email,
-                avatar: payload.picture || `https://gamehub.rohansweb.co.uk/download%20(4).png`,
-                petType: 'Companion',
-                eggs: 0
-            };
-            
-            // Sync with local store
-            const saved = localStorage.getItem(`user_${payload.email}`);
-            if(saved) {
-                const existing = JSON.parse(saved);
-                userData.eggs = existing.eggs || 0;
-                userData.avatar = existing.avatar;
-                userData.petType = existing.petType;
+        function auth0Signup() {
+            if (!auth0Client) {
+                alert("GameHub sign-in is still loading. Please try again.");
+                return;
             }
-            
-            loginSession(userData);
-            showView('hub');
-        }
-
-        function handleLogin() {
-            const email = document.getElementById('login-email').value;
-            const pass = document.getElementById('login-password').value;
-            if(!email || !pass) return;
-            
-            const saved = localStorage.getItem(`user_${email}`);
-            if(saved) {
-                const userData = JSON.parse(saved);
-                // Simple password check (In a real app, this is handled server-side)
-                if(userData.password && userData.password !== pass) {
-                    alert("Incorrect password!");
-                    return;
-                }
-                loginSession(userData);
-            } else {
-                // Auto-create if not found (Demo behavior)
-                const userData = { id: Date.now(), username: email.split('@')[0], email, password: pass, avatar: `https://gamehub.rohansweb.co.uk/download%20(4).png`, petType: 'Companion', eggs: 0 };
-                loginSession(userData);
-            }
-            showView('hub');
-        }
-
-        function handleSignup() {
-            const userIn = document.getElementById('signup-user').value;
-            const emailIn = document.getElementById('signup-email').value;
-            const passIn = document.getElementById('signup-password').value;
-            if(!userIn || !emailIn || !passIn) return;
-            
-            loginSession({ 
-                id: Date.now(), 
-                username: userIn, 
-                email: emailIn, 
-                password: passIn,
-                avatar: `https://gamehub.rohansweb.co.uk/download%20(4).png`, 
-                petType: 'Companion', 
-                eggs: 0 
+            auth0Client.loginWithRedirect({
+                authorizationParams: { screen_hint: "signup" }
             });
-            showView('hub');
         }
 
         function loginSession(userData) {
+            if (userData.password) delete userData.password;
             user = userData;
-            totalEggs = user.eggs || 0;
+            totalEggs = Number(user.eggs) || 0;
             saveUserData();
             updateUI();
         }
 
-        function logout() {
-            localStorage.removeItem('arcade_session');
-            user = null; totalEggs = 0;
-            updateUI(); showView('hub');
+        async function logout() {
+            user = null;
+            totalEggs = 0;
+            localStorage.removeItem("arcade_session");
+            updateUI();
+            if (auth0Client) {
+                await auth0Client.logout({
+                    logoutParams: { returnTo: window.location.origin }
+                });
+            } else {
+                showView("login");
+            }
         }
 
         function saveUserData() {
-            if(user) {
-                localStorage.setItem('arcade_session', JSON.stringify(user));
-                localStorage.setItem(`user_${user.email}`, JSON.stringify(user));
+            if (user) {
+                const profile = {
+                    id: user.id,
+                    username: user.username,
+                    email: user.email,
+                    avatar: user.avatar,
+                    petType: user.petType,
+                    eggs: Number(user.eggs) || 0
+                };
+                localStorage.setItem("arcade_session", JSON.stringify(profile));
+                if (user.email) {
+                    localStorage.setItem("user_" + user.email, JSON.stringify(profile));
+                }
             }
         }
 
@@ -544,6 +549,9 @@
         }, 8000);
 
         function showView(viewId) {
+            if (!user && viewId !== "login" && viewId !== "signup") {
+                viewId = "login";
+            }
             stopAllGames();
             ['hub', 'login', 'signup', 'account', 'avatar', 'catch', 'blockblast', 'dash', 'race', 'ultimate'].forEach(v => {
                 const el = document.getElementById('view-' + v);
@@ -784,10 +792,7 @@
             });
         }
 
-        window.onload = () => {
-            const saved = localStorage.getItem('arcade_session');
-            if(saved) loginSession(JSON.parse(saved));
-        };
+        window.addEventListener("load", () => { initAuth0(); });
     </script>
 </body>
 </html>
